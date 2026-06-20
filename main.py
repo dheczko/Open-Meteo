@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import colorchooser
 
 
 # Functions
@@ -14,6 +15,16 @@ def toggle_all_days():
     toggle_all_button.config(
         text="ALL" if not all_selected else "NONE"
     )
+
+
+def choose_color():
+    color = colorchooser.askcolor(title="Choose plot color")
+
+    if color[1]:
+        chart_color.config(
+            text=color[1],
+            background=color[1]
+        )
 
 
 # Interface sections
@@ -206,6 +217,67 @@ def create_units_section(root):
     ).pack(side="left", padx=5)
 
 
+def create_chart_options_section(root):
+    global statistic, chart_type, chart_color
+    
+    chart_frame = tk.LabelFrame(root, text="Chart options")
+    chart_frame.pack(padx=15, pady=5, fill="x")
+
+    statistic = tk.StringVar(value="avg")
+    chart_type = tk.StringVar(value="Line")
+
+    # Statistic
+
+    row0 = tk.Frame(chart_frame)
+    row0.pack(fill="x", pady=3)
+
+    tk.Label(row0, text="Statistic", width=12, anchor="w").pack(side="left")
+
+    for opt in ["avg", "max", "min"]:
+        tk.Radiobutton(
+            row0,
+            text=opt,
+            variable=statistic,
+            value=opt
+        ).pack(side="left", padx=5)
+
+    # Chart type
+
+    row1 = tk.Frame(chart_frame)
+    row1.pack(fill="x", pady=3)
+
+    tk.Label(row1, text="Chart type", width=12, anchor="w").pack(side="left")
+
+    for opt in ["Line", "Bar", "Scatter"]:
+        tk.Radiobutton(
+            row1,
+            text=opt,
+            variable=chart_type,
+            value=opt
+        ).pack(side="left", padx=5)
+
+    # Color
+
+    row2 = tk.Frame(chart_frame)
+    row2.pack(fill="x", pady=5)
+
+    tk.Label(row2, text="Color", width=12, anchor="w").pack(side="left")
+
+    tk.Button(
+        row2,
+        text="Choose color",
+        command=choose_color
+    ).pack(side="left", padx=5)
+
+    chart_color = tk.Label(
+        row2,
+        text="#ff0000",
+        background="#ff0000",
+        width=12
+    )
+    chart_color.pack(side="left", padx=10)
+
+
 if __name__ == "__main__":
     # Main window
 
@@ -218,5 +290,6 @@ if __name__ == "__main__":
     create_time_section(root)
     create_week_days_section(root)
     create_units_section(root)
+    create_chart_options_section(root)
 
     root.mainloop()
