@@ -21,7 +21,7 @@ engine = create_engine("postgresql://postgres:HasloDoSerwera@localhost:5432/weat
 cache_session = requests_cache.CachedSession('.cache', expire_after=3600)
 retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
 openmeteo = openmeteo_requests.Client(session=retry_session)
-url = "https://api.open-meteo.com/v1/forecast"
+url = "https://archive-api.open-meteo.com/v1/archive"
 
 def is_complete(conn):
     for table in REQUIRED_TABLES:
@@ -33,6 +33,23 @@ def is_complete(conn):
             return False
     return True
 
+from datetime import datetime, timedelta
+
+def determine_date_range(conn):
+    result = conn.execute(
+        text("SELECT MAX(sample_time) FROM hourly_data")
+    ).scalar()
+
+    today = datetime.utcnow().date()
+
+    if result is None:
+        start_date = today - timedelta(days=5*365)
+        end_date = today
+    else:
+        last_timestamp = result.date()
+        start_date = last_timestamp
+        end_date = today
+    return start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d")
 
 def import_data():
     with engine.connect() as conn:
@@ -43,12 +60,15 @@ def import_data():
             text("SELECT id, latitude, longitude FROM location")
         ).fetchall()
 
+        start_date, end_date = determine_date_range(conn)
+
         params = {
             "latitude": [loc[1] for loc in locations],
             "longitude": [loc[2] for loc in locations],
             "hourly": ["temperature_2m", "wind_speed_10m", "wind_direction_10m", "rain"],
             "timezone": "GMT",
-            "forecast_days": 1,
+            "start_date": start_date,
+            "end_date": end_date
         }
         responses = openmeteo.weather_api(url, params=params)
 
