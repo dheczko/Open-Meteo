@@ -132,6 +132,80 @@ def create_week_days_section(root):
     )
 
 
+def create_units_section(root):
+    global temperature, wind, rain
+    
+    units_frame = tk.LabelFrame(root, text="Units")
+    units_frame.pack(padx=15, pady=5, fill="x")
+
+    temperature = tk.StringVar(value="C")
+    wind = tk.StringVar(value="km/h")
+    rain = tk.StringVar(value="mm")
+
+    # Temperature
+
+    row0 = tk.Frame(units_frame)
+    row0.pack(fill="x", pady=3)
+
+    tk.Label(row0, text="Temperature", width=15, anchor="w").pack(side="left")
+
+    tk.Radiobutton(
+        row0,
+        text="°C",
+        variable=temperature,
+        value="C"
+    ).pack(side="left", padx=5)
+
+    tk.Radiobutton(
+        row0,
+        text="°F",
+        variable=temperature,
+        value="F"
+    ).pack(side="left", padx=5)
+
+    # Wind
+
+    row1 = tk.Frame(units_frame)
+    row1.pack(fill="x", pady=3)
+
+    tk.Label(row1, text="Wind", width=15, anchor="w").pack(side="left")
+
+    tk.Radiobutton(
+        row1,
+        text="km/h",
+        variable=wind,
+        value="km/h"
+    ).pack(side="left", padx=5)
+
+    tk.Radiobutton(
+        row1,
+        text="knots",
+        variable=wind,
+        value="knots"
+    ).pack(side="left", padx=5)
+
+    # Rain
+    
+    row2 = tk.Frame(units_frame)
+    row2.pack(fill="x", pady=3)
+
+    tk.Label(row2, text="Rain", width=15, anchor="w").pack(side="left")
+
+    tk.Radiobutton(
+        row2,
+        text="mm",
+        variable=rain,
+        value="mm"
+    ).pack(side="left", padx=5)
+
+    tk.Radiobutton(
+        row2,
+        text="inch",
+        variable=rain,
+        value="inch"
+    ).pack(side="left", padx=5)
+
+
 if __name__ == "__main__":
     # Main window
 
@@ -143,5 +217,6 @@ if __name__ == "__main__":
 
     create_time_section(root)
     create_week_days_section(root)
+    create_units_section(root)
 
     root.mainloop()
