@@ -27,6 +27,31 @@ def choose_color():
         )
 
 
+def visualize_data():
+    selected_days = [
+        day for day, var in days_vars.items() if var.get()
+    ]
+
+    data = {
+        "interval": interval.get(),
+        "date_from": date_from.get(),
+        "date_to": date_to.get(),
+
+        "week_days": selected_days,
+
+        "temperature_unit": temperature.get(),
+        "wind_unit": wind.get(),
+        "rain_unit": rain.get(),
+
+        "statistic": statistic.get(),
+        "chart_type": chart_type.get(),
+
+        "color": chart_color.cget("text")
+    }
+
+    print(data)
+
+
 # Interface sections
 
 def create_time_section(root):
@@ -291,5 +316,14 @@ if __name__ == "__main__":
     create_week_days_section(root)
     create_units_section(root)
     create_chart_options_section(root)
+
+    # Submit
+
+    tk.Button(
+        root,
+        text="Visualize data",
+        command=visualize_data
+    ).pack(pady=15)
+
 
     root.mainloop()
