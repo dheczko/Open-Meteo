@@ -18,6 +18,8 @@ def toggle_all_days():
 
 
 def choose_color():
+    global chart_color, chart_color_text
+
     color = colorchooser.askcolor(title="Choose plot color")
 
     if color[1]:
@@ -25,6 +27,7 @@ def choose_color():
             text=color[1],
             background=color[1]
         )
+        chart_color_text = color[1]
 
 
 def visualize_data():
@@ -46,10 +49,38 @@ def visualize_data():
         "statistic": statistic.get(),
         "chart_type": chart_type.get(),
 
-        "color": chart_color.cget("text")
+        "color": chart_color.cget("text"),
+
+        "visualization_type": visualization_type.get()
     }
 
     print(data)
+
+
+def rerender_all_frames():
+    time_frame.destroy()
+    days_frame.destroy()
+    units_frame.destroy()
+    chart_frame.destroy()
+
+    submit_button.destroy()
+
+    build_frames()
+
+def build_frames():
+    global submit_button
+
+    create_time_section(root)
+    create_week_days_section(root)
+    create_units_section(root)
+    create_chart_options_section(root)
+
+    submit_button = tk.Button(
+        root,
+        text="Visualize data",
+        command=visualize_data
+    )
+    submit_button.pack(pady=15)
 
 
 # Interface sections
@@ -92,6 +123,7 @@ def create_dropdown_row(root):
 
     def set_value(value):
         visualization_type.set(value)
+        rerender_all_frames()
 
     for opt in options:
         menu.add_command(
@@ -101,14 +133,15 @@ def create_dropdown_row(root):
 
 
 def create_time_section(root):
-    global interval, date_from, date_to
+    global interval, date_from, date_to, time_frame
 
-    time_frame = tk.LabelFrame(root, text="Time")
+    time_frame = tk.LabelFrame(root, text=visualization_type.get())
     time_frame.pack(padx=15, pady=5, fill="x")
 
     # Time interval
 
-    interval = tk.StringVar(value="Day")
+    if "interval" not in globals():
+        interval = tk.StringVar(value="Day")
 
     row0 = tk.Frame(time_frame)
     row0.pack(fill="x", pady=3)
@@ -160,12 +193,13 @@ def create_time_section(root):
 
 
 def create_week_days_section(root):
-    global days_vars, all_selected, toggle_all_button
+    global days_vars, all_selected, toggle_all_button, days_frame
 
     days_frame = tk.LabelFrame(root, text="Week days")
     days_frame.pack(padx=15, pady=5, fill="x")
 
-    days_vars = {}
+    if "days_vars" not in globals():
+        days_vars = {}
 
     week_days = [
         "Monday",
@@ -181,7 +215,11 @@ def create_week_days_section(root):
         days_frame.grid_columnconfigure(col, weight=1)
 
     for i, name in enumerate(week_days):
-        var = tk.BooleanVar(value=True)
+        set_value = True
+        if len(days_vars) > 0 and name in days_vars:
+            set_value = days_vars[name].get()
+        
+        var = tk.BooleanVar(value=set_value)
         days_vars[name] = var
 
         tk.Checkbutton(
@@ -197,11 +235,11 @@ def create_week_days_section(root):
             pady=2
         )
 
-    all_selected = True
+    all_selected = any(var.get() for var in days_vars.values())
 
     toggle_all_button = tk.Button(
         days_frame,
-        text="NONE",
+        text="NONE" if all_selected else "ALL",
         width=10,
         command=toggle_all_days
     )
@@ -215,14 +253,17 @@ def create_week_days_section(root):
 
 
 def create_units_section(root):
-    global temperature, wind, rain
+    global temperature, wind, rain, units_frame
     
     units_frame = tk.LabelFrame(root, text="Units")
     units_frame.pack(padx=15, pady=5, fill="x")
 
-    temperature = tk.StringVar(value="C")
-    wind = tk.StringVar(value="km/h")
-    rain = tk.StringVar(value="mm")
+    if "temperature" not in globals():
+        temperature = tk.StringVar(value="C")
+    if "wind" not in globals():
+        wind = tk.StringVar(value="km/h")
+    if "rain" not in globals():
+        rain = tk.StringVar(value="mm")
 
     # Temperature
 
@@ -289,13 +330,15 @@ def create_units_section(root):
 
 
 def create_chart_options_section(root):
-    global statistic, chart_type, chart_color
+    global statistic, chart_type, chart_color, chart_color_text, chart_frame
     
     chart_frame = tk.LabelFrame(root, text="Chart options")
     chart_frame.pack(padx=15, pady=5, fill="x")
 
-    statistic = tk.StringVar(value="avg")
-    chart_type = tk.StringVar(value="Line")
+    if "statistic" not in globals():
+        statistic = tk.StringVar(value="avg")
+    if "chart_type" not in globals():
+        chart_type = tk.StringVar(value="Line")
 
     # Statistic
 
@@ -340,10 +383,13 @@ def create_chart_options_section(root):
         command=choose_color
     ).pack(side="left", padx=5)
 
+    if "chart_color_text" not in globals():
+        chart_color_text = "#ff0000"
+
     chart_color = tk.Label(
         row2,
-        text="#ff0000",
-        background="#ff0000",
+        text=chart_color_text,
+        background=chart_color_text,
         width=12
     )
     chart_color.pack(side="left", padx=10)
@@ -356,22 +402,7 @@ if __name__ == "__main__":
     root.title("Open-Meteo Data Visualizer")
     root.geometry("520x750")
 
-    # Sections
-
     create_dropdown_row(root)
-
-    create_time_section(root)
-    create_week_days_section(root)
-    create_units_section(root)
-    create_chart_options_section(root)
-
-    # Submit
-
-    tk.Button(
-        root,
-        text="Visualize data",
-        command=visualize_data
-    ).pack(pady=15)
-
+    build_frames()
 
     root.mainloop()
