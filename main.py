@@ -135,7 +135,7 @@ def create_dropdown_row(root):
 def create_time_section(root):
     global interval, date_from, date_to, time_frame
 
-    time_frame = tk.LabelFrame(root, text=visualization_type.get())
+    time_frame = tk.LabelFrame(root, text="Time")
     time_frame.pack(padx=15, pady=5, fill="x")
 
     # Time interval
