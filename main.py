@@ -51,7 +51,7 @@ def visualize_data():
 
         "color": chart_color.cget("text"),
 
-        "visualization_type": visualization_type.get()
+        "visualization_type": visualization_option
     }
 
     print(data)
@@ -86,15 +86,21 @@ def build_frames():
 # Interface sections
 
 def create_dropdown_row(root):
-    global visualization_type
+    global visualization_type, visualization_option
 
-    options = [
-        "Temperature",
-        "Wind",
-        "Rain"
-    ]
+    visualization_options = {
+        "🌡 Temperature": ["temp"],
+        "💨 Wind speed": ["wind_speed"],
+        "🧭 Wind direction": ["wind_direction"],
+        "🌧 Rain": ["rain"],
+        "🌡 & 🌧 Temperature & Rain": ["temp", "rain"],
+        "🌤 Weather forecast": ["weather_forecast"]
+    }
+
+    options = list(visualization_options.keys())
 
     visualization_type = tk.StringVar(value=options[0])
+    visualization_option = visualization_options[options[0]]
 
     row = tk.Frame(root)
     row.pack(fill="x", pady=3)
@@ -122,7 +128,10 @@ def create_dropdown_row(root):
     menu_button.config(menu=menu)
 
     def set_value(value):
+        global visualization_option
+
         visualization_type.set(value)
+        visualization_option = visualization_options[value]
         rerender_all_frames()
 
     for opt in options:
