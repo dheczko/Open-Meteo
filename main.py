@@ -54,6 +54,52 @@ def visualize_data():
 
 # Interface sections
 
+def create_dropdown_row(root):
+    global visualization_type
+
+    options = [
+        "Temperature",
+        "Wind",
+        "Rain"
+    ]
+
+    visualization_type = tk.StringVar(value=options[0])
+
+    row = tk.Frame(root)
+    row.pack(fill="x", pady=3)
+
+    # Label
+    tk.Label(
+        row,
+        text="Visualization type",
+        width=13,
+        anchor="w"
+    ).pack(side="left")
+
+    # Menubutton
+    menu_button = tk.Menubutton(
+        row,
+        textvariable=visualization_type,
+        relief="raised",
+        anchor="w",
+        width=20
+    )
+    menu_button.pack(side="left")
+
+    # Dropdown menu
+    menu = tk.Menu(menu_button, tearoff=0)
+    menu_button.config(menu=menu)
+
+    def set_value(value):
+        visualization_type.set(value)
+
+    for opt in options:
+        menu.add_command(
+            label=opt,
+            command=lambda v=opt: set_value(v)
+        )
+
+
 def create_time_section(root):
     global interval, date_from, date_to
 
@@ -311,6 +357,8 @@ if __name__ == "__main__":
     root.geometry("520x750")
 
     # Sections
+
+    create_dropdown_row(root)
 
     create_time_section(root)
     create_week_days_section(root)
