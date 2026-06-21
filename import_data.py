@@ -37,7 +37,7 @@ from datetime import datetime, timedelta
 
 def determine_date_range(conn):
     result = conn.execute(
-        text("SELECT MAX(sample_time) FROM hourly_data")
+        text("SELECT MAX(time) FROM hourly_data")
     ).scalar()
 
     today = datetime.utcnow().date()
@@ -98,7 +98,7 @@ def import_data():
         for i, ts in enumerate(timestamps):
             result = conn.execute(
                 text("""
-                     INSERT INTO hourly_data (sample_time)
+                     INSERT INTO hourly_data (time)
                      VALUES (:ts) RETURNING id
                      """),
                 {"ts": ts.to_pydatetime()}
