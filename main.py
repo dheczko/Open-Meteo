@@ -176,14 +176,23 @@ def create_dropdown_row(root):
 def create_time_section(root):
     global interval, date_from, date_to, time_frame
 
-    if "weather_forecast" in visualization_option or "wind_direction" in visualization_option:
-        interval = None
-        date_from = None
-        date_to = None
-        return
-
     time_frame = tk.LabelFrame(root, text="Time")
     time_frame.pack(padx=15, pady=5, fill="x")
+
+    if "weather_forecast" in visualization_option or "wind_direction" in visualization_option:
+        interval = None
+        date_to = None
+        
+        row = tk.Frame(time_frame)
+        row.pack(fill="x", pady=3)
+        
+        tk.Label(row, text="Date", width=15, anchor="w").pack(side="left")
+        
+        date_from = tk.Entry(row)
+        date_from.insert(0, "YYYY-MM-DD")
+        date_from.pack(side="left")
+        
+        return
 
     # Time interval
 
