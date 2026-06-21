@@ -98,7 +98,8 @@ def init_db():
             CREATE TABLE IF NOT EXISTS logs (
                 id SERIAL PRIMARY KEY,
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                message VARCHAR
+                message VARCHAR(255),
+                state VARCHAR(255)
             )
         """))
         #-----------------------------------------------------------------------------------------------------------
