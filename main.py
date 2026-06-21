@@ -3,7 +3,10 @@ import os
 import tkinter as tk
 from tkinter import colorchooser, messagebox
 from datetime import datetime
+from sqlalchemy import create_engine, text
 
+
+engine = create_engine("postgresql://postgres:HasloDoSerwera@localhost:5432/weather_test")
 
 # Functions
 
@@ -294,14 +297,22 @@ def create_location_section(root):
     if "weather_forecast" in visualization_option or "wind_direction" in visualization_option:
         return
 
-    # Dummy data (TODO: replace with data from Database)
-    locations = {
-        0: "New York",
-        1: "London",
-        2: "Tokyo",
-        3: "Sydney",
-        4: "Paris"
-    }
+    # Importing locations from database
+    locations = {}
+    try:
+        with engine.connect() as conn:
+            query = text("""
+                SELECT l.id, c.name 
+                FROM location l
+                JOIN cities c ON l.city_id = c.id
+            """)
+            result = conn.execute(query).fetchall()
+            
+            locations = {row[0]: row[1] for row in result}
+
+    except Exception as e:
+        messagebox.showerror("Database Error", f"Could not fetch locations from database:\n{e}")
+        locations = {0: "No database connection"}
 
     options = list(locations.keys())
 
