@@ -149,9 +149,9 @@ def init_db():
                 city_id = result.fetchone()[0]
 
                 conn.execute(
-                    text("INSERT INTO location (city_id, latitude, longitude) VALUES (:city_id, :lat, :lon)"),
+                    text("INSERT INTO locations (city_id, latitude, longitude) VALUES (:city_id, :lat, :lon)"),
                     {"city_id": city_id, "lat": lat, "lon": lon}
                 )
-                
+
         conn.commit()
         print("Baza danych została zainicjalizowana, tabele utworzone.")
