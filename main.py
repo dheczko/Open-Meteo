@@ -247,7 +247,7 @@ def create_time_section(root):
     if "date_to_text" not in globals():
         date_to_text = tk.StringVar(value=str(date_now.strftime("%Y-%m-%d")))
 
-    if "weather_forecast" in visualization_option or "wind_direction" in visualization_option:
+    if "weather_forecast" in visualization_option:
         interval = None
         date_from = None
         
@@ -263,34 +263,35 @@ def create_time_section(root):
 
     # Time interval
 
-    if "interval" not in globals() or interval is None:
-        interval = tk.StringVar(value="Day")
+    if "wind_direction" not in visualization_option:
+        if "interval" not in globals() or interval is None:
+            interval = tk.StringVar(value="Day")
 
-    row0 = tk.Frame(time_frame)
-    row0.pack(fill="x", pady=3)
+        row0 = tk.Frame(time_frame)
+        row0.pack(fill="x", pady=3)
 
-    tk.Label(row0, text="Time interval", width=15, anchor="w").pack(side="left")
+        tk.Label(row0, text="Time interval", width=15, anchor="w").pack(side="left")
 
-    tk.Radiobutton(
-        row0,
-        text="Year",
-        variable=interval,
-        value="Year"
-    ).pack(side="left", padx=5)
+        tk.Radiobutton(
+            row0,
+            text="Year",
+            variable=interval,
+            value="Year"
+        ).pack(side="left", padx=5)
 
-    tk.Radiobutton(
-        row0,
-        text="Month",
-        variable=interval,
-        value="Month"
-    ).pack(side="left", padx=5)
+        tk.Radiobutton(
+            row0,
+            text="Month",
+            variable=interval,
+            value="Month"
+        ).pack(side="left", padx=5)
 
-    tk.Radiobutton(
-        row0,
-        text="Day",
-        variable=interval,
-        value="Day"
-    ).pack(side="left", padx=5)
+        tk.Radiobutton(
+            row0,
+            text="Day",
+            variable=interval,
+            value="Day"
+        ).pack(side="left", padx=5)
 
     # From date
 
@@ -386,7 +387,7 @@ def create_location_section(root):
 def create_week_days_section(root):
     global days_vars, all_selected, toggle_all_button, days_frame
 
-    if "weather_forecast" in visualization_option or "wind_direction" in visualization_option:
+    if "weather_forecast" in visualization_option:
         days_vars = {}
         return
 
