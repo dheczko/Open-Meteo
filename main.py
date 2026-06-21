@@ -303,7 +303,7 @@ def create_location_section(root):
         with engine.connect() as conn:
             query = text("""
                 SELECT l.id, c.name 
-                FROM location l
+                FROM locations l
                 JOIN cities c ON l.city_id = c.id
             """)
             result = conn.execute(query).fetchall()
