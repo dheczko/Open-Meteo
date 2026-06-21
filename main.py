@@ -34,6 +34,19 @@ def choose_color1():
         chart_color_text1 = color[1]
 
 
+def choose_color2():
+    global chart_color2, chart_color_text2
+
+    color = colorchooser.askcolor(title="Choose plot color")
+
+    if color[1]:
+        chart_color2.config(
+            text=color[1],
+            background=color[1]
+        )
+        chart_color_text2 = color[1]
+
+
 def visualize_data():
     selected_days = [
         (idx + 1) % 7 for idx, var in enumerate(days_vars.values()) if var.get()
@@ -42,6 +55,10 @@ def visualize_data():
     interval_value = interval.get() if interval else None
     date_from_value = date_from.get() if date_from else None
     date_to_value = date_to.get() if date_to else None
+
+    statistic2_value = statistic2.get() if statistic2 else None
+    chart_type2_value = chart_type2.get() if chart_type2 else None
+    color2_value = chart_color2.cget("text") if chart_color2 else None
 
     data = {
         "interval": interval_value,
@@ -60,6 +77,10 @@ def visualize_data():
         "chart_type1": chart_type1.get(),
         "color1": chart_color1.cget("text"),
 
+        "statistic2": statistic2_value,
+        "chart_type2": chart_type2_value,
+        "color2": color2_value,
+
         "visualization_type": visualization_option
     }
 
@@ -72,7 +93,7 @@ def rerender_all_frames():
     days_frame.destroy()
     units_frame.destroy()
     chart_frame1.destroy()
-
+    chart_frame2.destroy()
     submit_button.destroy()
 
     build_frames()
@@ -480,7 +501,7 @@ def create_chart_options_section(root):
         command=choose_color1
     ).pack(side="left", padx=5)
 
-    if "chart_color_text" not in globals():
+    if "chart_color_text1" not in globals():
         chart_color_text1 = "#ff0000"
 
     chart_color1 = tk.Label(
@@ -491,13 +512,92 @@ def create_chart_options_section(root):
     )
     chart_color1.pack(side="left", padx=10)
 
+    global statistic2, chart_type2, chart_color2, chart_color_text2, chart_frame2
+
+    chart_frame2 = tk.LabelFrame(root, text=f"Options ({get_title(visualization_option[len(visualization_option) > 1])})")
+    chart_frame2.pack(padx=15, pady=5, fill="x")
+
+    if len(visualization_option) > 1:
+        create_chart_options_section2()
+        return
+    
+    statistic2 = None
+    chart_type2 = None
+    chart_color2 = None
+    chart_color_text2 = None
+
+
+def create_chart_options_section2():
+    global statistic2, chart_type2, chart_color2, chart_color_text2, chart_frame2
+
+    if "statistic2" not in globals() or statistic2 is None:
+        statistic2 = tk.StringVar(value="avg")
+    if "chart_type2" not in globals() or chart_type2 is None:
+        chart_type2 = tk.StringVar(value="Bar")
+
+    # Statistic
+
+    if "weather_forecast" not in visualization_option and "wind_direction" not in visualization_option:
+        row0 = tk.Frame(chart_frame2)
+        row0.pack(fill="x", pady=3)
+
+        tk.Label(row0, text="Statistic", width=12, anchor="w").pack(side="left")
+
+        for opt in ["avg", "max", "min"]:
+            tk.Radiobutton(
+                row0,
+                text=opt,
+                variable=statistic2,
+                value=opt
+            ).pack(side="left", padx=5)
+
+    # Chart type
+
+    if "weather_forecast" not in visualization_option and "wind_direction" not in visualization_option:
+        row1 = tk.Frame(chart_frame2)
+        row1.pack(fill="x", pady=3)
+
+        tk.Label(row1, text="Chart type", width=12, anchor="w").pack(side="left")
+
+        for opt in ["Line", "Bar", "Scatter"]:
+            tk.Radiobutton(
+                row1,
+                text=opt,
+                variable=chart_type2,
+                value=opt
+            ).pack(side="left", padx=5)
+
+    # Color
+
+    row2 = tk.Frame(chart_frame2)
+    row2.pack(fill="x", pady=5)
+
+    tk.Label(row2, text="Color", width=12, anchor="w").pack(side="left")
+
+    tk.Button(
+        row2,
+        text="Choose color",
+        command=choose_color2
+    ).pack(side="left", padx=5)
+
+    if "chart_color_text2" not in globals() or chart_color_text2 is None:
+        chart_color_text2 = "#0000ff"
+
+    chart_color2 = tk.Label(
+        row2,
+        text=chart_color_text2,
+        background=chart_color_text2,
+        width=12
+    )
+    chart_color2.pack(side="left", padx=10)
+
 
 if __name__ == "__main__":
     # Main window
 
     root = tk.Tk()
     root.title("Open-Meteo Data Visualizer")
-    root.geometry("520x750")
+    root.geometry("520x800")
 
     create_dropdown_row(root)
     build_frames()
