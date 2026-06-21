@@ -3,6 +3,7 @@ import os
 import tkinter as tk
 from tkinter import colorchooser, messagebox
 from datetime import datetime
+from import_data import import_data
 from sqlalchemy import create_engine, text
 
 
@@ -130,6 +131,21 @@ def visualize_data():
     print(data)
 
 
+def periodic_refresh(root):
+    refresh_data()
+    rerender_all_frames()
+    root.after(60 * 60 * 1000, lambda: periodic_refresh(root))
+
+
+def refresh_data():
+    label_text = "Refreshing data... (please wait, this may take a while)"
+    messagebox.showinfo("Refreshing Data", label_text)
+    print(label_text)
+
+    import_data()
+    print("Data refreshed successfully.")
+
+
 def rerender_all_frames():
     time_frame.destroy()
     location_frame.destroy()
@@ -217,56 +233,65 @@ def create_dropdown_row(root):
 
 
 def create_time_section(root):
-    global interval, date_from, date_to, time_frame
+    global interval, date_from, date_to, date_from_text, date_to_text, time_frame
 
     time_frame = tk.LabelFrame(root, text="Time")
     time_frame.pack(padx=15, pady=5, fill="x")
 
-    if "weather_forecast" in visualization_option or "wind_direction" in visualization_option:
+    date_now = datetime.now()
+    previous_year = date_now.replace(year=date_now.year - 1)
+
+    if "date_from_text" not in globals():
+        date_from_text = tk.StringVar(value=previous_year.strftime("%Y-%m-%d"))
+
+    if "date_to_text" not in globals():
+        date_to_text = tk.StringVar(value=str(date_now.strftime("%Y-%m-%d")))
+
+    if "weather_forecast" in visualization_option:
         interval = None
-        date_to = None
+        date_from = None
         
         row = tk.Frame(time_frame)
         row.pack(fill="x", pady=3)
         
         tk.Label(row, text="Date", width=15, anchor="w").pack(side="left")
         
-        date_from = tk.Entry(row)
-        date_from.insert(0, "")
-        date_from.pack(side="left")
+        date_to = tk.Entry(row, textvariable=date_to_text)
+        date_to.pack(side="left")
         
         return
 
     # Time interval
 
-    if "interval" not in globals() or interval is None:
-        interval = tk.StringVar(value="Day")
+    if "wind_direction" not in visualization_option:
+        if "interval" not in globals() or interval is None:
+            interval = tk.StringVar(value="Day")
 
-    row0 = tk.Frame(time_frame)
-    row0.pack(fill="x", pady=3)
+        row0 = tk.Frame(time_frame)
+        row0.pack(fill="x", pady=3)
 
-    tk.Label(row0, text="Time interval", width=15, anchor="w").pack(side="left")
+        tk.Label(row0, text="Time interval", width=15, anchor="w").pack(side="left")
 
-    tk.Radiobutton(
-        row0,
-        text="Year",
-        variable=interval,
-        value="Year"
-    ).pack(side="left", padx=5)
+        tk.Radiobutton(
+            row0,
+            text="Year",
+            variable=interval,
+            value="Year"
+        ).pack(side="left", padx=5)
 
-    tk.Radiobutton(
-        row0,
-        text="Month",
-        variable=interval,
-        value="Month"
-    ).pack(side="left", padx=5)
+        tk.Radiobutton(
+            row0,
+            text="Month",
+            variable=interval,
+            value="Month"
+        ).pack(side="left", padx=5)
 
-    tk.Radiobutton(
-        row0,
-        text="Day",
-        variable=interval,
-        value="Day"
-    ).pack(side="left", padx=5)
+        tk.Radiobutton(
+            row0,
+            text="Day",
+            variable=interval,
+            value="Day"
+        ).pack(side="left", padx=5)
 
     # From date
 
@@ -275,8 +300,7 @@ def create_time_section(root):
 
     tk.Label(row1, text="From", width=15, anchor="w").pack(side="left")
 
-    date_from = tk.Entry(row1)
-    date_from.insert(0, "")
+    date_from = tk.Entry(row1, textvariable=date_from_text)
     date_from.pack(side="left")
 
     # To date
@@ -286,8 +310,7 @@ def create_time_section(root):
 
     tk.Label(row2, text="To", width=15, anchor="w").pack(side="left")
 
-    date_to = tk.Entry(row2)
-    date_to.insert(0, "")
+    date_to = tk.Entry(row2, textvariable=date_to_text)
     date_to.pack(side="left")
 
 
@@ -364,7 +387,7 @@ def create_location_section(root):
 def create_week_days_section(root):
     global days_vars, all_selected, toggle_all_button, days_frame
 
-    if "weather_forecast" in visualization_option or "wind_direction" in visualization_option:
+    if "weather_forecast" in visualization_option:
         days_vars = {}
         return
 
@@ -664,6 +687,8 @@ if __name__ == "__main__":
     root.iconphoto(True, icon)
 
     create_dropdown_row(root)
+    refresh_data()
     build_frames()
 
+    root.after(60 * 60 * 1000, lambda: periodic_refresh(root))
     root.mainloop()
