@@ -3,6 +3,17 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# SQLite caches
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+
+# System files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
 # C extensions
 *.so
 
