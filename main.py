@@ -4,6 +4,10 @@ from tkinter import colorchooser
 
 # Functions
 
+def get_title(text):
+    return text[0].upper() + text[1:].replace("_", " ")
+
+
 def toggle_all_days():
     global all_selected
 
@@ -17,17 +21,17 @@ def toggle_all_days():
     )
 
 
-def choose_color():
-    global chart_color, chart_color_text
+def choose_color1():
+    global chart_color1, chart_color_text1
 
     color = colorchooser.askcolor(title="Choose plot color")
 
     if color[1]:
-        chart_color.config(
+        chart_color1.config(
             text=color[1],
             background=color[1]
         )
-        chart_color_text = color[1]
+        chart_color_text1 = color[1]
 
 
 def visualize_data():
@@ -52,10 +56,9 @@ def visualize_data():
         "wind_unit": wind.get(),
         "rain_unit": rain.get(),
 
-        "statistic": statistic.get(),
-        "chart_type": chart_type.get(),
-
-        "color": chart_color.cget("text"),
+        "statistic1": statistic1.get(),
+        "chart_type1": chart_type1.get(),
+        "color1": chart_color1.cget("text"),
 
         "visualization_type": visualization_option
     }
@@ -68,7 +71,7 @@ def rerender_all_frames():
     location_frame.destroy()
     days_frame.destroy()
     units_frame.destroy()
-    chart_frame.destroy()
+    chart_frame1.destroy()
 
     submit_button.destroy()
 
@@ -422,20 +425,20 @@ def create_units_section(root):
 
 
 def create_chart_options_section(root):
-    global statistic, chart_type, chart_color, chart_color_text, chart_frame
-    
-    chart_frame = tk.LabelFrame(root, text="Chart options")
-    chart_frame.pack(padx=15, pady=5, fill="x")
+    global statistic1, chart_type1, chart_color1, chart_color_text1, chart_frame1
 
-    if "statistic" not in globals():
-        statistic = tk.StringVar(value="avg")
-    if "chart_type" not in globals():
-        chart_type = tk.StringVar(value="Line")
+    chart_frame1 = tk.LabelFrame(root, text=f"Options ({get_title(visualization_option[0])})")
+    chart_frame1.pack(padx=15, pady=5, fill="x")
+
+    if "statistic1" not in globals():
+        statistic1 = tk.StringVar(value="avg")
+    if "chart_type1" not in globals():
+        chart_type1 = tk.StringVar(value="Line")
 
     # Statistic
 
     if "weather_forecast" not in visualization_option and "wind_direction" not in visualization_option:
-        row0 = tk.Frame(chart_frame)
+        row0 = tk.Frame(chart_frame1)
         row0.pack(fill="x", pady=3)
 
         tk.Label(row0, text="Statistic", width=12, anchor="w").pack(side="left")
@@ -444,14 +447,14 @@ def create_chart_options_section(root):
             tk.Radiobutton(
                 row0,
                 text=opt,
-                variable=statistic,
+                variable=statistic1,
                 value=opt
             ).pack(side="left", padx=5)
 
     # Chart type
 
     if "weather_forecast" not in visualization_option and "wind_direction" not in visualization_option:
-        row1 = tk.Frame(chart_frame)
+        row1 = tk.Frame(chart_frame1)
         row1.pack(fill="x", pady=3)
 
         tk.Label(row1, text="Chart type", width=12, anchor="w").pack(side="left")
@@ -460,13 +463,13 @@ def create_chart_options_section(root):
             tk.Radiobutton(
                 row1,
                 text=opt,
-                variable=chart_type,
+                variable=chart_type1,
                 value=opt
             ).pack(side="left", padx=5)
 
     # Color
 
-    row2 = tk.Frame(chart_frame)
+    row2 = tk.Frame(chart_frame1)
     row2.pack(fill="x", pady=5)
 
     tk.Label(row2, text="Color", width=12, anchor="w").pack(side="left")
@@ -474,19 +477,19 @@ def create_chart_options_section(root):
     tk.Button(
         row2,
         text="Choose color",
-        command=choose_color
+        command=choose_color1
     ).pack(side="left", padx=5)
 
     if "chart_color_text" not in globals():
-        chart_color_text = "#ff0000"
+        chart_color_text1 = "#ff0000"
 
-    chart_color = tk.Label(
+    chart_color1 = tk.Label(
         row2,
-        text=chart_color_text,
-        background=chart_color_text,
+        text=chart_color_text1,
+        background=chart_color_text1,
         width=12
     )
-    chart_color.pack(side="left", padx=10)
+    chart_color1.pack(side="left", padx=10)
 
 
 if __name__ == "__main__":
