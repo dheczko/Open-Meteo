@@ -1,9 +1,20 @@
+import sys
+import os
 import tkinter as tk
 from tkinter import colorchooser, messagebox
 from datetime import datetime
 
 
 # Functions
+
+def resource_path(relative_path):
+    if hasattr(sys, "_MEIPASS"):
+        return os.path.join(sys._MEIPASS, relative_path)
+
+    return os.path.join(
+        os.path.abspath("."),
+        relative_path
+    )
 
 def validate_date(date_str):
     if date_str == "YYYY-MM-DD" or not date_str:
@@ -636,6 +647,10 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.title("Open-Meteo Data Visualizer")
     root.geometry("520x800")
+
+    icon_path = resource_path("img/icon.png")
+    icon = tk.PhotoImage(file=icon_path)
+    root.iconphoto(True, icon)
 
     create_dropdown_row(root)
     build_frames()
