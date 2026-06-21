@@ -98,9 +98,71 @@ def init_db():
             CREATE TABLE IF NOT EXISTS logs (
                 id SERIAL PRIMARY KEY,
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                message VARCHAR(255)
+                message VARCHAR
             )
         """))
+        #-----------------------------------------------------------------------------------------------------------
+        """
+        Relacje między tabelami:
+        """
+        conn.execute(text("""
+            ALTER TABLE temperature
+            ADD CONSTRAINT fk_temperature_location
+            FOREIGN KEY (location_id) REFERENCES locations(id)
+            ON DELETE CASCADE,
+            ADD CONSTRAINT fk_temperature_hourly_data
+            FOREIGN KEY (hourly_data_id) REFERENCES hourly_data(id)
+            ON DELETE CASCADE;
+        """))
+        conn.execute(text("""
+            ALTER TABLE rain
+            ADD CONSTRAINT fk_rain_location
+            FOREIGN KEY (location_id) REFERENCES locations(id)
+            ON DELETE CASCADE,
+            ADD CONSTRAINT fk_rain_hourly_data
+            FOREIGN KEY (hourly_data_id) REFERENCES hourly_data(id)
+            ON DELETE CASCADE;
+        """))
+        conn.execute(text("""
+            ALTER TABLE wind_speed
+            ADD CONSTRAINT fk_wind_speed_location
+            FOREIGN KEY (location_id) REFERENCES locations(id)
+            ON DELETE CASCADE,
+            ADD CONSTRAINT fk_wind_speed_hourly_data
+            FOREIGN KEY (hourly_data_id) REFERENCES hourly_data(id)
+            ON DELETE CASCADE;
+        """))
+        conn.execute(text("""
+            ALTER TABLE wind_direction
+            ADD CONSTRAINT fk_wind_direction_location
+            FOREIGN KEY (location_id) REFERENCES locations(id)
+            ON DELETE CASCADE,
+            ADD CONSTRAINT fk_wind_direction_hourly_data
+            FOREIGN KEY (hourly_data_id) REFERENCES hourly_data(id)
+            ON DELETE CASCADE;
+        """))
+        conn.execute(text("""
+            ALTER TABLE daily_data
+            ADD CONSTRAINT fk_daily_data_location
+            FOREIGN KEY (location_id) REFERENCES locations(id)
+            ON DELETE CASCADE,
+            ADD CONSTRAINT fk_daily_data_weather
+            FOREIGN KEY (weather_id) REFERENCES weather_icons(id)
+            ON DELETE CASCADE;
+        """))
+        conn.execute(text("""
+            ALTER TABLE locations
+            ADD CONSTRAINT fk_locations_city
+            FOREIGN KEY (city_id) REFERENCES cities(id)
+            ON DELETE CASCADE;
+        """))
+        conn.execute(text("""
+            ALTER TABLE cities
+            ADD CONSTRAINT fk_cities_country
+            FOREIGN KEY (country_id) REFERENCES countries(id)
+            ON DELETE CASCADE;
+        """))
+        #-----------------------------------------------------------------------------------------------------------
         """
         Wstawiamy domyślne lokalizacje, miasta i kraje 
         """
