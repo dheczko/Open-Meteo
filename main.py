@@ -233,23 +233,31 @@ def create_dropdown_row(root):
 
 
 def create_time_section(root):
-    global interval, date_from, date_to, time_frame
+    global interval, date_from, date_to, date_from_text, date_to_text, time_frame
 
     time_frame = tk.LabelFrame(root, text="Time")
     time_frame.pack(padx=15, pady=5, fill="x")
 
+    date_now = datetime.now()
+    previous_year = date_now.replace(year=date_now.year - 1)
+
+    if "date_from_text" not in globals():
+        date_from_text = tk.StringVar(value=previous_year.strftime("%Y-%m-%d"))
+
+    if "date_to_text" not in globals():
+        date_to_text = tk.StringVar(value=str(date_now.strftime("%Y-%m-%d")))
+
     if "weather_forecast" in visualization_option or "wind_direction" in visualization_option:
         interval = None
-        date_to = None
+        date_from = None
         
         row = tk.Frame(time_frame)
         row.pack(fill="x", pady=3)
         
         tk.Label(row, text="Date", width=15, anchor="w").pack(side="left")
         
-        date_from = tk.Entry(row)
-        date_from.insert(0, "")
-        date_from.pack(side="left")
+        date_to = tk.Entry(row, textvariable=date_to_text)
+        date_to.pack(side="left")
         
         return
 
@@ -291,8 +299,7 @@ def create_time_section(root):
 
     tk.Label(row1, text="From", width=15, anchor="w").pack(side="left")
 
-    date_from = tk.Entry(row1)
-    date_from.insert(0, "")
+    date_from = tk.Entry(row1, textvariable=date_from_text)
     date_from.pack(side="left")
 
     # To date
@@ -302,8 +309,7 @@ def create_time_section(root):
 
     tk.Label(row2, text="To", width=15, anchor="w").pack(side="left")
 
-    date_to = tk.Entry(row2)
-    date_to.insert(0, "")
+    date_to = tk.Entry(row2, textvariable=date_to_text)
     date_to.pack(side="left")
 
 
