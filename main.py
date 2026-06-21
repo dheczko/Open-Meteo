@@ -32,7 +32,7 @@ def choose_color():
 
 def visualize_data():
     selected_days = [
-        day for day, var in days_vars.items() if var.get()
+        (idx + 1) % 7 for idx, var in enumerate(days_vars.values()) if var.get()
     ]
 
     data = {
@@ -89,11 +89,11 @@ def create_dropdown_row(root):
     global visualization_type, visualization_option
 
     visualization_options = {
-        "🌡 Temperature": ["temp"],
+        "🌡 Temperature": ["temperature"],
         "💨 Wind speed": ["wind_speed"],
         "🧭 Wind direction": ["wind_direction"],
         "🌧 Rain": ["rain"],
-        "🌡 & 🌧 Temperature & Rain": ["temp", "rain"],
+        "🌡 & 🌧 Temperature & Rain": ["temperature", "rain"],
         "🌤 Weather forecast": ["weather_forecast"]
     }
 
