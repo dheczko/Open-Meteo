@@ -40,6 +40,8 @@ def visualize_data():
         "date_from": date_from.get(),
         "date_to": date_to.get(),
 
+        "location_id": location_id,
+
         "week_days": selected_days,
 
         "temperature_unit": temperature.get(),
@@ -59,6 +61,7 @@ def visualize_data():
 
 def rerender_all_frames():
     time_frame.destroy()
+    location_frame.destroy()
     days_frame.destroy()
     units_frame.destroy()
     chart_frame.destroy()
@@ -71,6 +74,7 @@ def build_frames():
     global submit_button
 
     create_time_section(root)
+    create_location_section(root)
     create_week_days_section(root)
     create_units_section(root)
     create_chart_options_section(root)
@@ -199,6 +203,65 @@ def create_time_section(root):
     date_to = tk.Entry(row2)
     date_to.insert(0, "YYYY-MM-DD")
     date_to.pack(side="left")
+
+
+def create_location_section(root):
+    global location_id, location_name, location_frame
+
+    # Dummy data (TODO: replace with data from Database)
+    locations = {
+        0: "New York",
+        1: "London",
+        2: "Tokyo",
+        3: "Sydney",
+        4: "Paris"
+    }
+
+    options = list(locations.keys())
+
+    if "location_id" not in globals():
+        location_id = options[0]
+    if "location_name" not in globals():
+        location_name = tk.StringVar(value=locations[location_id])
+
+    location_frame = tk.LabelFrame(root, text="Location")
+    location_frame.pack(padx=15, pady=5, fill="x")
+
+    row = tk.Frame(location_frame)
+    row.pack(fill="x", pady=3)
+
+    # Label
+    tk.Label(
+        row,
+        text="Location",
+        width=13,
+        anchor="w"
+    ).pack(side="left")
+
+    # Menubutton
+    menu_button = tk.Menubutton(
+        row,
+        textvariable=location_name,
+        relief="raised",
+        anchor="w",
+        width=20
+    )
+    menu_button.pack(side="left")
+
+    # Dropdown menu
+    menu = tk.Menu(menu_button, tearoff=0)
+    menu_button.config(menu=menu)
+
+    def set_value(value):
+        global location_id, location_name
+        location_id = value
+        location_name.set(locations[value])
+
+    for opt in options:
+        menu.add_command(
+            label=locations[opt],
+            command=lambda v=opt: set_value(v)
+        )
 
 
 def create_week_days_section(root):
