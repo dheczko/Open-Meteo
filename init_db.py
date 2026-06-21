@@ -93,7 +93,14 @@ def init_db():
                 name VARCHAR
             )
         """))
-
+        #logs
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS logs (
+                id SERIAL PRIMARY KEY,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                message VARCHAR(255)
+            )
+        """))
         """
         Wstawiamy domyślne lokalizacje, miasta i kraje 
         """
