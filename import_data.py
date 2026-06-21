@@ -1,4 +1,4 @@
-
+from init_db import init_db
 import pandas as pd
 import requests_cache
 from retry_requests import retry
@@ -7,14 +7,18 @@ from sqlalchemy import create_engine, text
 import psycopg2
 
 REQUIRED_TABLES = [
-    "location",
+    "countries",
+    "cities",
+    "locations",
     "hourly_data",
     "temperature",
     "rain",
     "wind_speed",
-    "wind_direction"
+    "wind_direction",
+    "daily_data",
+    "weather_icons"
 ]
-
+#trzeba zmienić na faktyczną bazę
 engine = create_engine("postgresql://postgres:HasloDoSerwera@localhost:5432/weather_test")
 
 
@@ -40,7 +44,7 @@ def determine_date_range(conn):
         text("SELECT MAX(time) FROM hourly_data")
     ).scalar()
 
-    today = datetime.utcnow().date()
+    today = datetime.now().date()
 
     if result is None:
         start_date = today - timedelta(days=5*365)
@@ -49,87 +53,149 @@ def determine_date_range(conn):
         last_timestamp = result.date()
         start_date = last_timestamp
         end_date = today
+
+    if start_date > end_date:
+        start_date = end_date
     return start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d")
+
+def get_locations(conn):
+    return conn.execute(
+        text("SELECT id, latitude, longitude FROM location")
+    ).fetchall()
+
+def import_hourly_data(conn,locations,start_date,end_date):
+    params = {
+        "latitude": [loc[1] for loc in locations],
+        "longitude": [loc[2] for loc in locations],
+        "hourly": ["temperature_2m", "wind_speed_10m", "wind_direction_10m", "rain"],
+        "timezone": "auto",
+        "start_date": start_date,
+        "end_date": end_date
+    }
+    responses = openmeteo.weather_api(url, params=params)
+
+    weather_data = {}
+    timestamps = None
+    for idx, (loc_id, lat, lon) in enumerate(locations):
+        response = responses[idx]
+        hourly = response.Hourly()
+
+        if timestamps is None:
+            timestamps = pd.date_range(
+                start=pd.to_datetime(hourly.Time(), unit="s", utc=True),
+                end=pd.to_datetime(hourly.TimeEnd(), unit="s", utc=True),
+                freq=pd.Timedelta(seconds=hourly.Interval()),
+                inclusive="left"
+            )
+            timestamps = timestamps.tz_convert("GMT")
+
+        weather_data[loc_id] = {
+            "temperature": hourly.Variables(0).ValuesAsNumpy(),
+            "wind_speed": hourly.Variables(1).ValuesAsNumpy(),
+            "wind_direction": hourly.Variables(2).ValuesAsNumpy(),
+            "rain": hourly.Variables(3).ValuesAsNumpy(),
+        }
+    print("Dane godzinowe pobrane.")
+
+    for i, ts in enumerate(timestamps):
+        result = conn.execute(
+            text("""
+                INSERT INTO hourly_data (time)
+                VALUES (:ts) RETURNING id
+                """),
+            {"ts": ts.to_pydatetime()}
+        )
+        hourly_data_id = result.fetchone()[0]
+
+        for loc_id in weather_data:
+            conn.execute(
+                text("INSERT INTO temperature (hourly_data_id, location_id, value) "
+                    "VALUES (:h, :l, :v)"),
+                {"h": hourly_data_id, "l": loc_id, "v": float(weather_data[loc_id]["temperature"][i])}
+            )
+
+            conn.execute(
+                text("INSERT INTO rain (hourly_data_id, location_id, value) "
+                    "VALUES (:h, :l, :v)"),
+                {"h": hourly_data_id, "l": loc_id, "v": float(weather_data[loc_id]["rain"][i])}
+            )
+
+            conn.execute(
+                text("INSERT INTO wind_speed (hourly_data_id, location_id, value) "
+                    "VALUES (:h, :l, :v)"),
+                {"h": hourly_data_id, "l": loc_id, "v": float(weather_data[loc_id]["wind_speed"][i])}
+            )
+            conn.execute(
+                    text("INSERT INTO wind_direction (hourly_data_id, location_id, value) "
+                    "VALUES (:h, :l, :v)"),
+                {"h": hourly_data_id, "l": loc_id, "v": float(weather_data[loc_id]["wind_direction"][i])}
+            )
+    conn.commit()
+
+    print("Dane godzinowe zapisane.")
+
+def import_daily_data(conn,locations,start_date,end_date):
+    params = {
+        "latitude": [loc[1] for loc in locations],
+        "longitude": [loc[2] for loc in locations],
+        "daily": "weather_code",
+        "timezone": "GMT",
+        "start_date": start_date,
+        "end_date": end_date
+    }
+
+    responses = openmeteo.weather_api(url, params=params)
+
+    daily_data = {}
+    dates = None
+
+    for idx, (loc_id, lat, lon) in enumerate(locations):
+        response = responses[idx]
+        daily = response.Daily()
+
+        if dates is None:
+            dates = pd.date_range(
+                start=pd.to_datetime(daily.Time(), unit="s", utc=True),
+                end=pd.to_datetime(daily.TimeEnd(), unit="s", utc=True),
+                freq=pd.Timedelta(seconds=daily.Interval()),
+                inclusive="left"
+            )
+            dates = dates.tz_convert("GMT")
+
+        daily_data[loc_id] = {
+            "weather_code": daily.Variables(0).ValuesAsNumpy()
+        }
+
+    print("Dane dzienne pobrane.")
+
+    for i, day in enumerate(dates):
+        date_only = day.date()
+
+        for loc_id in daily_data:
+            conn.execute(
+                text("""
+                    INSERT INTO daily_data (time, location_id, weather_id)
+                    VALUES (:d, :l, :w)
+                """),
+                {
+                    "d": date_only,
+                    "l": loc_id,
+                    "w": int(daily_data[loc_id]["weather_code"][i])
+                }
+            )
+
+    conn.commit()
+    print("Dane dzienne zapisane.")
 
 def import_data():
     with engine.connect() as conn:
-        #if not is_complete(conn):
-            #init_db()
-
-        locations = conn.execute(
-            text("SELECT id, latitude, longitude FROM location")
-        ).fetchall()
-
+        if not is_complete(conn):
+            init_db()
+        locations = get_locations(conn)
         start_date, end_date = determine_date_range(conn)
 
-        params = {
-            "latitude": [loc[1] for loc in locations],
-            "longitude": [loc[2] for loc in locations],
-            "hourly": ["temperature_2m", "wind_speed_10m", "wind_direction_10m", "rain"],
-            "timezone": "GMT",
-            "start_date": start_date,
-            "end_date": end_date
-        }
-        responses = openmeteo.weather_api(url, params=params)
+        import_hourly_data(conn,locations,start_date,end_date)
+        import_daily_data(conn,locations,start_date,end_date)
 
-        weather_data = {}
-        timestamps = None
-        for idx, (loc_id, lat, lon) in enumerate(locations):
-            response = responses[idx]
-            hourly = response.Hourly()
-
-            if timestamps is None:
-                timestamps = pd.date_range(
-                    start=pd.to_datetime(hourly.Time(), unit="s", utc=True).tz_convert("UTC"),
-                    end=pd.to_datetime(hourly.TimeEnd(), unit="s", utc=True).tz_convert("UTC"),
-                    freq=pd.Timedelta(seconds=hourly.Interval()),
-                    inclusive="left"
-                )
-                timestamps = timestamps.tz_convert("UTC")
-
-            weather_data[loc_id] = {
-                "temperature": hourly.Variables(0).ValuesAsNumpy(),
-                "wind_speed": hourly.Variables(1).ValuesAsNumpy(),
-                "wind_direction": hourly.Variables(2).ValuesAsNumpy(),
-                "rain": hourly.Variables(3).ValuesAsNumpy(),
-            }
-        print("Dane godzinowe pobrane.")
-
-        for i, ts in enumerate(timestamps):
-            result = conn.execute(
-                text("""
-                     INSERT INTO hourly_data (time)
-                     VALUES (:ts) RETURNING id
-                     """),
-                {"ts": ts.to_pydatetime()}
-            )
-            hourly_data_id = result.fetchone()[0]
-
-            for loc_id in weather_data:
-                conn.execute(
-                    text("INSERT INTO temperature (hourly_data_id, location_id, value) "
-                         "VALUES (:h, :l, :v)"),
-                    {"h": hourly_data_id, "l": loc_id, "v": float(weather_data[loc_id]["temperature"][i])}
-                )
-
-                conn.execute(
-                    text("INSERT INTO rain (hourly_data_id, location_id, value) "
-                         "VALUES (:h, :l, :v)"),
-                    {"h": hourly_data_id, "l": loc_id, "v": float(weather_data[loc_id]["rain"][i])}
-                )
-
-                conn.execute(
-                    text("INSERT INTO wind_speed (hourly_data_id, location_id, value) "
-                         "VALUES (:h, :l, :v)"),
-                    {"h": hourly_data_id, "l": loc_id, "v": float(weather_data[loc_id]["wind_speed"][i])}
-                )
-                conn.execute(
-                    text("INSERT INTO wind_direction (hourly_data_id, location_id, value) "
-                         "VALUES (:h, :l, :v)"),
-                    {"h": hourly_data_id, "l": loc_id, "v": float(weather_data[loc_id]["wind_direction"][i])}
-                )
-        conn.commit()
-
-        print("Dane godzinowe zapisane.")
-
-import_data()
+if __name__ == "__main__":
+    import_data()
