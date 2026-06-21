@@ -1,8 +1,19 @@
 import tkinter as tk
-from tkinter import colorchooser
+from tkinter import colorchooser, messagebox
+from datetime import datetime
 
 
 # Functions
+
+def validate_date(date_str):
+    if date_str == "YYYY-MM-DD" or not date_str:
+        return False
+    try:
+        datetime.strptime(date_str, "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
+
 
 def get_title(text):
     return text[0].upper() + text[1:].replace("_", " ")
@@ -48,13 +59,31 @@ def choose_color2():
 
 
 def visualize_data():
+    # Validate date inputs
+
+    if date_from:
+        date_from_value = date_from.get()
+        if not validate_date(date_from_value):
+            messagebox.showerror("Invalid Date", f"Invalid {"'From' " if date_to else ""}date: {date_from_value}\nPlease use format YYYY-MM-DD")
+            return
+    else:
+        date_from_value = None
+
+    if date_to:
+        date_to_value = date_to.get()
+        if not validate_date(date_to_value):
+            messagebox.showerror("Invalid Date", f"Invalid 'To' date: {date_to_value}\nPlease use format YYYY-MM-DD")
+            return
+    else:
+        date_to_value = None
+
+    # Get data
+
     selected_days = [
         (idx + 1) % 7 for idx, var in enumerate(days_vars.values()) if var.get()
     ]
 
     interval_value = interval.get() if interval else None
-    date_from_value = date_from.get() if date_from else None
-    date_to_value = date_to.get() if date_to else None
 
     statistic2_value = statistic2.get() if statistic2 else None
     chart_type2_value = chart_type2.get() if chart_type2 else None
@@ -189,7 +218,7 @@ def create_time_section(root):
         tk.Label(row, text="Date", width=15, anchor="w").pack(side="left")
         
         date_from = tk.Entry(row)
-        date_from.insert(0, "YYYY-MM-DD")
+        date_from.insert(0, "")
         date_from.pack(side="left")
         
         return
@@ -233,7 +262,7 @@ def create_time_section(root):
     tk.Label(row1, text="From", width=15, anchor="w").pack(side="left")
 
     date_from = tk.Entry(row1)
-    date_from.insert(0, "YYYY-MM-DD")
+    date_from.insert(0, "")
     date_from.pack(side="left")
 
     # To date
@@ -244,7 +273,7 @@ def create_time_section(root):
     tk.Label(row2, text="To", width=15, anchor="w").pack(side="left")
 
     date_to = tk.Entry(row2)
-    date_to.insert(0, "YYYY-MM-DD")
+    date_to.insert(0, "")
     date_to.pack(side="left")
 
 
