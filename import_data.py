@@ -48,11 +48,11 @@ def determine_date_range(conn):
 
     if result is None:
         start_date = today - timedelta(days=5*365)
-        end_date = today
+        end_date = today - timedelta(days=1)
     else:
         last_timestamp = result.date()
         start_date = last_timestamp
-        end_date = today
+        end_date = today - timedelta(days=1)
 
     if start_date > end_date:
         start_date = end_date
@@ -134,7 +134,10 @@ def import_hourly_data(conn,locations,start_date,end_date):
 
     print("Dane godzinowe zapisane.")
 
-def import_daily_data(conn,locations,start_date,end_date):
+def import_daily_data(conn, locations, start_date, end_date):
+    rows = conn.execute(text("SELECT id, code FROM weather_icons")).fetchall()
+    weather_map = {row.code: row.id for row in rows}
+
     params = {
         "latitude": [loc[1] for loc in locations],
         "longitude": [loc[2] for loc in locations],
@@ -159,8 +162,7 @@ def import_daily_data(conn,locations,start_date,end_date):
                 end=pd.to_datetime(daily.TimeEnd(), unit="s", utc=True),
                 freq=pd.Timedelta(seconds=daily.Interval()),
                 inclusive="left"
-            )
-            dates = dates.tz_convert("GMT")
+            ).tz_convert("GMT")
 
         daily_data[loc_id] = {
             "weather_code": daily.Variables(0).ValuesAsNumpy()
@@ -172,6 +174,13 @@ def import_daily_data(conn,locations,start_date,end_date):
         date_only = day.date()
 
         for loc_id in daily_data:
+            code = int(daily_data[loc_id]["weather_code"][i])
+
+            weather_id = weather_map.get(code)
+
+            if weather_id is None:
+                raise ValueError(f"Brak kodu {code} w bazie")
+
             conn.execute(
                 text("""
                     INSERT INTO daily_data (time, location_id, weather_id)
@@ -180,12 +189,28 @@ def import_daily_data(conn,locations,start_date,end_date):
                 {
                     "d": date_only,
                     "l": loc_id,
-                    "w": int(daily_data[loc_id]["weather_code"][i])
+                    "w": weather_id
                 }
             )
-
     conn.commit()
     print("Dane dzienne zapisane.")
+
+
+def run_and_log(conn, func):
+    try:
+        func()
+        conn.execute(
+            text("INSERT INTO logs (time, state, message) VALUES (:t, :s, :m)"),
+            {"t": datetime.now(), "s": "Success", "m": "The import has been successful"}
+        )
+        conn.commit()
+    except Exception as e:
+        conn.execute(
+            text("INSERT INTO logs (time, state, message) VALUES (:t, :s, :m)"),
+            {"t": datetime.utcnow(), "s": "Failure","m": "The import has been successful"}
+        )
+        conn.commit()
+        raise e
 
 def import_data():
     with engine.connect() as conn:
@@ -194,8 +219,9 @@ def import_data():
         locations = get_locations(conn)
         start_date, end_date = determine_date_range(conn)
 
-        import_hourly_data(conn,locations,start_date,end_date)
-        import_daily_data(conn,locations,start_date,end_date)
+        run_and_log(conn, lambda: import_hourly_data(conn,locations,start_date,end_date))
+        run_and_log(conn, lambda: import_daily_data(conn,locations,start_date,end_date))
+
 
 if __name__ == "__main__":
     import_data()
