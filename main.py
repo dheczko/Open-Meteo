@@ -3,6 +3,7 @@ import os
 import tkinter as tk
 from tkinter import colorchooser, messagebox
 from datetime import datetime
+from import_data import import_data
 from sqlalchemy import create_engine, text
 
 
@@ -128,6 +129,21 @@ def visualize_data():
     }
 
     print(data)
+
+
+def periodic_refresh(root):
+    refresh_data()
+    rerender_all_frames()
+    root.after(60 * 60 * 1000, lambda: periodic_refresh(root))
+
+
+def refresh_data():
+    label_text = "Refreshing data... (please wait, this may take a while)"
+    messagebox.showinfo("Refreshing Data", label_text)
+    print(label_text)
+
+    import_data()
+    print("Data refreshed successfully.")
 
 
 def rerender_all_frames():
@@ -664,6 +680,8 @@ if __name__ == "__main__":
     root.iconphoto(True, icon)
 
     create_dropdown_row(root)
+    refresh_data()
     build_frames()
 
+    root.after(60 * 60 * 1000, lambda: periodic_refresh(root))
     root.mainloop()
