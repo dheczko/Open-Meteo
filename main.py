@@ -35,10 +35,14 @@ def visualize_data():
         (idx + 1) % 7 for idx, var in enumerate(days_vars.values()) if var.get()
     ]
 
+    interval_value = interval.get() if interval else None
+    date_from_value = date_from.get() if date_from else None
+    date_to_value = date_to.get() if date_to else None
+
     data = {
-        "interval": interval.get(),
-        "date_from": date_from.get(),
-        "date_to": date_to.get(),
+        "interval": interval_value,
+        "date_from": date_from_value,
+        "date_to": date_to_value,
 
         "location_id": location_id,
 
@@ -148,12 +152,18 @@ def create_dropdown_row(root):
 def create_time_section(root):
     global interval, date_from, date_to, time_frame
 
+    if "weather_forecast" in visualization_option or "wind_direction" in visualization_option:
+        interval = None
+        date_from = None
+        date_to = None
+        return
+
     time_frame = tk.LabelFrame(root, text="Time")
     time_frame.pack(padx=15, pady=5, fill="x")
 
     # Time interval
 
-    if "interval" not in globals():
+    if "interval" not in globals() or interval is None:
         interval = tk.StringVar(value="Day")
 
     row0 = tk.Frame(time_frame)
@@ -207,6 +217,9 @@ def create_time_section(root):
 
 def create_location_section(root):
     global location_id, location_name, location_frame
+
+    if "weather_forecast" in visualization_option or "wind_direction" in visualization_option:
+        return
 
     # Dummy data (TODO: replace with data from Database)
     locations = {
@@ -266,6 +279,10 @@ def create_location_section(root):
 
 def create_week_days_section(root):
     global days_vars, all_selected, toggle_all_button, days_frame
+
+    if "weather_forecast" in visualization_option or "wind_direction" in visualization_option:
+        days_vars = {}
+        return
 
     days_frame = tk.LabelFrame(root, text="Week days")
     days_frame.pack(padx=15, pady=5, fill="x")
@@ -339,66 +356,69 @@ def create_units_section(root):
 
     # Temperature
 
-    row0 = tk.Frame(units_frame)
-    row0.pack(fill="x", pady=3)
+    if "temperature" in visualization_option:
+        row0 = tk.Frame(units_frame)
+        row0.pack(fill="x", pady=3)
 
-    tk.Label(row0, text="Temperature", width=15, anchor="w").pack(side="left")
+        tk.Label(row0, text="Temperature", width=15, anchor="w").pack(side="left")
 
-    tk.Radiobutton(
-        row0,
-        text="°C",
-        variable=temperature,
-        value="C"
-    ).pack(side="left", padx=5)
+        tk.Radiobutton(
+            row0,
+            text="°C",
+            variable=temperature,
+            value="C"
+        ).pack(side="left", padx=5)
 
-    tk.Radiobutton(
-        row0,
-        text="°F",
-        variable=temperature,
-        value="F"
-    ).pack(side="left", padx=5)
+        tk.Radiobutton(
+            row0,
+            text="°F",
+            variable=temperature,
+            value="F"
+        ).pack(side="left", padx=5)
 
     # Wind
 
-    row1 = tk.Frame(units_frame)
-    row1.pack(fill="x", pady=3)
+    if "wind_speed" in visualization_option:
+        row1 = tk.Frame(units_frame)
+        row1.pack(fill="x", pady=3)
 
-    tk.Label(row1, text="Wind", width=15, anchor="w").pack(side="left")
+        tk.Label(row1, text="Wind", width=15, anchor="w").pack(side="left")
 
-    tk.Radiobutton(
-        row1,
-        text="km/h",
-        variable=wind,
-        value="km/h"
-    ).pack(side="left", padx=5)
+        tk.Radiobutton(
+            row1,
+            text="km/h",
+            variable=wind,
+            value="km/h"
+        ).pack(side="left", padx=5)
 
-    tk.Radiobutton(
-        row1,
-        text="knots",
-        variable=wind,
-        value="knots"
-    ).pack(side="left", padx=5)
+        tk.Radiobutton(
+            row1,
+            text="knots",
+            variable=wind,
+            value="knots"
+        ).pack(side="left", padx=5)
 
     # Rain
-    
-    row2 = tk.Frame(units_frame)
-    row2.pack(fill="x", pady=3)
 
-    tk.Label(row2, text="Rain", width=15, anchor="w").pack(side="left")
+    if "rain" in visualization_option:
+        row2 = tk.Frame(units_frame)
+        row2.pack(fill="x", pady=3)
 
-    tk.Radiobutton(
-        row2,
-        text="mm",
-        variable=rain,
-        value="mm"
-    ).pack(side="left", padx=5)
+        tk.Label(row2, text="Rain", width=15, anchor="w").pack(side="left")
 
-    tk.Radiobutton(
-        row2,
-        text="inch",
-        variable=rain,
-        value="inch"
-    ).pack(side="left", padx=5)
+        tk.Radiobutton(
+            row2,
+            text="mm",
+            variable=rain,
+            value="mm"
+        ).pack(side="left", padx=5)
+
+        tk.Radiobutton(
+            row2,
+            text="inch",
+            variable=rain,
+            value="inch"
+        ).pack(side="left", padx=5)
 
 
 def create_chart_options_section(root):
@@ -414,33 +434,35 @@ def create_chart_options_section(root):
 
     # Statistic
 
-    row0 = tk.Frame(chart_frame)
-    row0.pack(fill="x", pady=3)
+    if "weather_forecast" not in visualization_option and "wind_direction" not in visualization_option:
+        row0 = tk.Frame(chart_frame)
+        row0.pack(fill="x", pady=3)
 
-    tk.Label(row0, text="Statistic", width=12, anchor="w").pack(side="left")
+        tk.Label(row0, text="Statistic", width=12, anchor="w").pack(side="left")
 
-    for opt in ["avg", "max", "min"]:
-        tk.Radiobutton(
-            row0,
-            text=opt,
-            variable=statistic,
-            value=opt
-        ).pack(side="left", padx=5)
+        for opt in ["avg", "max", "min"]:
+            tk.Radiobutton(
+                row0,
+                text=opt,
+                variable=statistic,
+                value=opt
+            ).pack(side="left", padx=5)
 
     # Chart type
 
-    row1 = tk.Frame(chart_frame)
-    row1.pack(fill="x", pady=3)
+    if "weather_forecast" not in visualization_option and "wind_direction" not in visualization_option:
+        row1 = tk.Frame(chart_frame)
+        row1.pack(fill="x", pady=3)
 
-    tk.Label(row1, text="Chart type", width=12, anchor="w").pack(side="left")
+        tk.Label(row1, text="Chart type", width=12, anchor="w").pack(side="left")
 
-    for opt in ["Line", "Bar", "Scatter"]:
-        tk.Radiobutton(
-            row1,
-            text=opt,
-            variable=chart_type,
-            value=opt
-        ).pack(side="left", padx=5)
+        for opt in ["Line", "Bar", "Scatter"]:
+            tk.Radiobutton(
+                row1,
+                text=opt,
+                variable=chart_type,
+                value=opt
+            ).pack(side="left", padx=5)
 
     # Color
 
