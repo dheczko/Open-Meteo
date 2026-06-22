@@ -60,7 +60,7 @@ def determine_date_range(conn):
 
 def get_locations(conn):
     return conn.execute(
-        text("SELECT id, latitude, longitude FROM location")
+        text("SELECT id, latitude, longitude FROM locations")
     ).fetchall()
 
 def import_hourly_data(conn,locations,start_date,end_date):
