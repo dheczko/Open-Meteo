@@ -21,7 +21,24 @@ DB_HOST = "localhost"
 DB_PORT = "5432"
 DB_NAME = "weather_test"
 
+if os.path.exists("config.txt"):
+    with open("config.txt", "r") as f:
+        lines = f.readlines()
+        for line in lines:
+            key, value = line.strip().split(": ")
+            if key == "DB_USER":
+                DB_USER = value
+            elif key == "DB_PASSWORD":
+                DB_PASSWORD = value
+            elif key == "DB_HOST":
+                DB_HOST = value
+            elif key == "DB_PORT":
+                DB_PORT = value
+            elif key == "DB_NAME":
+                DB_NAME = value
+
 DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+print(DATABASE_URL)
 
 engine = create_engine(DATABASE_URL)
 
