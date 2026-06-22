@@ -1,12 +1,31 @@
 import os
 import tkinter as tk
-import matplotlib.pyplot as plt
 import pandas as pd
-import matplotlib.dates as mdates
 import geopandas as gpd
 import numpy as np
 from main import resource_path
+
+import matplotlib
+matplotlib.use('TkAgg')
+
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+
+
+def change_icon():
+    manager = plt.get_current_fig_manager()
+    icon_path = resource_path("img/icon.png")
+
+    if os.path.exists(icon_path):
+        if hasattr(manager, 'window'):
+            try:
+                img = tk.PhotoImage(file=icon_path, master=manager.window)
+                manager.window.iconphoto(False, img)
+            except Exception as e:
+                print(f"Nie udało się ustawić ikony: {e}")
+        else:
+            print("Matplotlib używa backendu bez wsparcia dla manager.window")
 
 def plot_weather_data(df, chart_type1, label1, color1, chart_type2=None, label2=None, color2=None):
     """
@@ -92,11 +111,7 @@ def plot_weather_data(df, chart_type1, label1, color1, chart_type2=None, label2=
     plt.title("Weather Data Visualization", fontsize=14, pad=15)
     
     # Wyświetlenie wykresu w osobnym oknie Tkinter
-    manager = plt.get_current_fig_manager()
-    icon_path = resource_path("img/icon.png")
-    img = tk.PhotoImage(file=icon_path, master=manager.window)
-    manager.window.iconphoto(False, img)
-
+    change_icon()
     plt.tight_layout()
     plt.show()
 
@@ -159,11 +174,7 @@ def plot_wind_map(df, color='#ff0000'):
     # Dodanie delikatnej siatki geograficznej
     ax.grid(True, linestyle=':', alpha=0.5)
 
-    manager = plt.get_current_fig_manager()
-    icon_path = resource_path("img/icon.png")
-    img = tk.PhotoImage(file=icon_path, master=manager.window)
-    manager.window.iconphoto(False, img)
-
+    change_icon()
     plt.tight_layout()
     plt.show()
 
@@ -226,10 +237,6 @@ def plot_weather_map(df, color='#ff0000'):
     ax.set_ylim(-90, 90)
     ax.grid(True, linestyle=':', alpha=0.5)
 
-    manager = plt.get_current_fig_manager()
-    icon_path = resource_path("img/icon.png")
-    img = tk.PhotoImage(file=icon_path, master=manager.window)
-    manager.window.iconphoto(False, img)
-
+    change_icon()
     plt.tight_layout()
     plt.show()

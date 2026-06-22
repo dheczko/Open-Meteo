@@ -9,6 +9,9 @@ from import_data import import_data
 from sqlalchemy import create_engine, text
 
 
+if hasattr(sys, '_MEIPASS'):
+    os.environ['GDAL_DATA'] = os.path.join(sys._MEIPASS, 'gdal_data')
+
 engine = create_engine("postgresql://postgres:HasloDoSerwera@localhost:5432/weather_test")
 
 # Functions
