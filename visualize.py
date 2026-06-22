@@ -99,3 +99,70 @@ def plot_weather_data(df, chart_type1, label1, color1, chart_type2=None, label2=
 
     plt.tight_layout()
     plt.show()
+
+def plot_wind_map(df, color='#ff0000'):
+    """
+    Rysuje mapę świata z zaznaczonymi strzałkami kierunku wiatru.
+    
+    Argumenty:
+    - df (pd.DataFrame): DataFrame zawierający kolumny 'latitude', 'longitude', 'wind_direction'
+    - color (str): Kolor strzałek (np. nazwa lub kod HEX)
+    """
+
+    if df is None or df.empty:
+        print("Brak danych wiatru do wyświetlenia na mapie.")
+        return
+
+    # 1. Obliczanie składowych wektora (U, V) na podstawie kąta w stopniach
+    angles_rad = np.radians(df['wind_direction'])
+    
+    # Składowa X (wschód-zachód) oraz Y (północ-południe)
+    # Mnożymy przez -1, ponieważ strzałka ma pokazywać DOKĄD wiatr wieje, a nie skąd.
+    u = -np.sin(angles_rad)
+    v = -np.cos(angles_rad)
+
+    # 2. Inicjalizacja wykresu i wczytanie lokalnej mapy świata
+    _, ax = plt.subplots(figsize=(14, 8))
+    
+    # Ładujemy uproszczone granice państw/kontynentów
+    local_map_path = resource_path("data/world_map.shp")
+    world = gpd.read_file(local_map_path)
+    
+    # Rysujemy mapę jako tło (jasnoszare kontynenty, białe granice)
+    world.plot(ax=ax, color='#e0e0e0', edgecolor='white')
+
+    # 3. Naniesienie strzałek za pomocą funkcji quiver
+    # Argumenty: X (long), Y (lat), U (składowa X), V (składowa Y)
+    ax.quiver(
+        df['longitude'], 
+        df['latitude'], 
+        u, 
+        v, 
+        color=color,
+        scale=80,           # Skala długości strzałek
+        width=0.002,        # Grubość linii strzałki
+        headwidth=3,        # Szerokość grotu
+        headlength=4,       # Długość grotu
+        headaxislength=3.5, # Wcięcie grotu
+        pivot='middle'      # Punkt obrotu strzałki ustawiony na jej środku
+    )
+
+    # 4. Estetyka wykresu
+    ax.set_title("Wind Direction Map", fontsize=14, pad=15)
+    ax.set_xlabel("Longitude")
+    ax.set_ylabel("Latitude")
+    
+    # Ustawienie limitów mapy na pełny zakres współrzędnych geograficznych
+    ax.set_xlim(-180, 180)
+    ax.set_ylim(-90, 90)
+    
+    # Dodanie delikatnej siatki geograficznej
+    ax.grid(True, linestyle=':', alpha=0.5)
+
+    manager = plt.get_current_fig_manager()
+    icon_path = resource_path("img/icon.png")
+    img = tk.PhotoImage(file=icon_path, master=manager.window)
+    manager.window.iconphoto(False, img)
+
+    plt.tight_layout()
+    plt.show()
