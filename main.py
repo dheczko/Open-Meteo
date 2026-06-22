@@ -38,7 +38,6 @@ if os.path.exists("config.txt"):
                 DB_NAME = value
 
 DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-print(DATABASE_URL)
 
 engine = create_engine(DATABASE_URL)
 
