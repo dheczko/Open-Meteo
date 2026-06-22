@@ -11,6 +11,65 @@ engine = create_engine("postgresql://postgres:HasloDoSerwera@localhost:5432/weat
 
 # Functions
 
+def convert_units(df, param1, param2=None):
+    df = df.copy()
+    
+    # param1 conversion
+
+    if param1 == "temperature":
+        if temperature.get() == "F":
+            df.iloc[:, 1] = df.iloc[:, 1] * 9/5 + 32
+            unit = "°F"
+        else:
+            unit = "°C"
+    
+    elif param1 == "wind_speed":
+        if wind.get() == "knots":
+            df.iloc[:, 1] = df.iloc[:, 1] * 0.539957
+            unit = "knots"
+        else:
+            unit = "km/h"
+    
+    elif param1 == "rain":
+        if rain.get() == "inch":
+            df.iloc[:, 1] = df.iloc[:, 1] * 0.0393701
+            unit = "inch"
+        else:
+            unit = "mm"
+
+    label1 = f"{get_title(param1)} ({unit})"
+
+    # param2 conversion
+    
+    if param2:
+        if param2 == "temperature":
+            if temperature.get() == "F":
+                df.iloc[:, 2] = df.iloc[:, 2] * 9/5 + 32
+                unit2 = "°F"
+            else:
+                unit2 = "°C"
+        
+        elif param2 == "wind_speed":
+            if wind.get() == "knots":
+                df.iloc[:, 2] = df.iloc[:, 2] * 0.539957
+                unit2 = "knots"
+            else:
+                unit2 = "km/h"
+        
+        elif param2 == "rain":
+            if rain.get() == "inch":
+                df.iloc[:, 2] = df.iloc[:, 2] * 0.0393701
+                unit2 = "inch"
+            else:
+                unit2 = "mm"
+        
+        label2 = f"{get_title(param2)} ({unit2})"
+
+        return df, (label1, label2)
+    
+    return df, label1
+
+
 def resource_path(relative_path):
     if hasattr(sys, "_MEIPASS"):
         return os.path.join(sys._MEIPASS, relative_path)
