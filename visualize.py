@@ -166,3 +166,70 @@ def plot_wind_map(df, color='#ff0000'):
 
     plt.tight_layout()
     plt.show()
+
+def plot_weather_map(df, color='#ff0000'):
+    """
+    Rysuje mapę świata z ikonami pogodowymi w odpowiednich lokalizacjach.
+    
+    Argument:
+    - df (pd.DataFrame): Zawiera kolumny 'latitude', 'longitude', 'weather_code'
+    - color (str): Kolor kropek (jeśli ikona nie istnieje, np. '#ff0000')
+    """
+
+    if df is None or df.empty:
+        print("Brak danych pogodowych do wyświetlenia na mapie.")
+        return
+
+    # 1. Ładowanie lokalnej mapy świata
+    local_map_path = resource_path("data/world_map.shp")
+    world = gpd.read_file(local_map_path)
+
+    # 2. Inicjalizacja wykresu
+    _, ax = plt.subplots(figsize=(14, 8))
+    world.plot(ax=ax, color="#f0f0f0", edgecolor='white')
+
+    # 3. Iteracja po wierszach DataFrame i nanoszenie obrazków
+    for _, row in df.iterrows():
+        lat = row['latitude']
+        lon = row['longitude']
+        code = int(row['weather_code']) if not pd.isna(row['weather_code']) else 0
+
+        # Ścieżka do konkretnego obrazka, np. img/icons/3.png
+        img_path = resource_path(os.path.join("img", "icons", f"{code}.png"))
+
+        if os.path.exists(img_path):
+            try:
+                # Wczytanie obrazka i ustalenie jego skali (zoom)
+                image = plt.imread(img_path)
+                image_box = OffsetImage(image, zoom=0.3) 
+                
+                # Przypięcie obrazka do współrzędnych (lon, lat)
+                ab = AnnotationBbox(
+                    image_box, 
+                    (lon, lat), 
+                    frameon=False,
+                    zorder=4
+                )
+                ax.add_artist(ab)
+            except Exception as e:
+                print(f"[Wypis] Nie udało się wyrenderować ikony dla kodu {code}: {e}")
+        else:
+            ax.scatter(lon, lat, color=color, s=20, zorder=3)
+            print(f"[Ostrzeżenie] Brak pliku graficznego: {img_path}")
+
+    # 4. Estetyka mapy
+    ax.set_title("Weather Map", fontsize=14, pad=15)
+    ax.set_xlabel("Longitude")
+    ax.set_ylabel("Latitude")
+
+    ax.set_xlim(-180, 180)
+    ax.set_ylim(-90, 90)
+    ax.grid(True, linestyle=':', alpha=0.5)
+
+    manager = plt.get_current_fig_manager()
+    icon_path = resource_path("img/icon.png")
+    img = tk.PhotoImage(file=icon_path, master=manager.window)
+    manager.window.iconphoto(False, img)
+
+    plt.tight_layout()
+    plt.show()
