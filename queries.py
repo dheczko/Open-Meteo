@@ -150,3 +150,56 @@ def get_combined_weather_stats(table1, statistic1, table2, statistic2, interval,
         df['time'] = pd.to_datetime(df['time'])
         
         return df
+
+def get_dominant_wind_direction(date_from, date_to, week_days):
+    """
+    Wylicza przeważający kierunek wiatru dla wszystkich lokalizacji w podanym zakresie dat
+    i wybranych dniach tygodnia.
+    
+    Argumenty:
+    - date_from (str): Data początkowa w formacie 'YYYY-MM-DD'
+    - date_to (str): Data końcowa w formacie 'YYYY-MM-DD'
+    - week_days (list): Lista cyfr oznaczających dni tygodnia (0-niedziela, 6-sobota)
+    
+    Zwraca:
+    - pd.DataFrame z kolumnami: 'latitude', 'longitude', 'wind_direction'
+    """
+
+    # Zabezpieczenie na wypadek pustej listy dni tygodnia
+    if not week_days:
+        return pd.DataFrame(columns=["latitude", "longitude", "wind_direction"])
+
+    query = text("""
+        SELECT 
+            l.latitude,
+            l.longitude,
+            MODE() WITHIN GROUP (ORDER BY wd.value) AS wind_direction
+        FROM wind_direction wd
+        JOIN hourly_data hd ON wd.hourly_data_id = hd.id
+        JOIN locations l ON wd.location_id = l.id
+        WHERE hd.time::date BETWEEN :date_from AND :date_to
+          AND EXTRACT(DOW FROM hd.time) IN :week_days
+        GROUP BY l.id, l.latitude, l.longitude;
+    """)
+
+    with engine.connect() as conn:
+        result = conn.execute(
+            query, 
+            {
+                "date_from": date_from,
+                "date_to": date_to,
+                "week_days": tuple(week_days)
+            }
+        )
+        
+        # Tworzymy DataFrame z wynikami
+        df = pd.DataFrame(
+            result.fetchall(), 
+            columns=["latitude", "longitude", "wind_direction"]
+        )
+        
+        # Konwertujemy kierunek wiatru na liczby całkowite (stopnie)
+        if not df.empty:
+            df["wind_direction"] = df["wind_direction"].astype(int)
+            
+        return df
