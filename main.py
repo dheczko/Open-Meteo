@@ -1,6 +1,8 @@
 import sys
 import os
 import tkinter as tk
+from queries import *
+from visualize import *
 from tkinter import colorchooser, messagebox
 from datetime import datetime
 from import_data import import_data
@@ -159,35 +161,64 @@ def visualize_data():
 
     interval_value = interval.get() if interval else None
 
-    statistic2_value = statistic2.get() if statistic2 else None
-    chart_type2_value = chart_type2.get() if chart_type2 else None
-    color2_value = chart_color2.cget("text") if chart_color2 else None
+    # Visualize data based on the selected options
+    
+    if "weather_forecast" in visualization_option:
+        result = get_weather_codes(date_to_value)
+        plot_weather_map(result, color=chart_color_text1)
+        return
 
-    data = {
-        "interval": interval_value,
-        "date_from": date_from_value,
-        "date_to": date_to_value,
+    if "wind_direction" in visualization_option:
+        result = get_dominant_wind_direction(
+            date_from_value,
+            date_to_value,
+            selected_days
+        )
+        plot_wind_map(result, color=chart_color_text1)
+        return
 
-        "location_id": location_id,
+    if len(visualization_option) > 1:
+        result = get_combined_weather_stats(
+            visualization_option[0],
+            statistic1.get(),
+            visualization_option[1],
+            statistic2.get(),
+            interval_value,
+            date_from_value,
+            date_to_value,
+            location_id,
+            selected_days
+        )
 
-        "week_days": selected_days,
+        result, labels = convert_units(result, visualization_option[0], visualization_option[1])
+        plot_weather_data(
+            result,
+            chart_type1.get(),
+            labels[0],
+            chart_color_text1,
+            chart_type2.get(),
+            labels[1],
+            chart_color_text2
+        )
+        return
 
-        "temperature_unit": temperature.get(),
-        "wind_unit": wind.get(),
-        "rain_unit": rain.get(),
+    result = get_weather_stats(
+        visualization_option[0],
+        interval_value,
+        date_from_value,
+        date_to_value,
+        location_id,
+        selected_days,
+        statistic1.get()
+    )
 
-        "statistic1": statistic1.get(),
-        "chart_type1": chart_type1.get(),
-        "color1": chart_color1.cget("text"),
-
-        "statistic2": statistic2_value,
-        "chart_type2": chart_type2_value,
-        "color2": color2_value,
-
-        "visualization_type": visualization_option
-    }
-
-    print(data)
+    result, label = convert_units(result, visualization_option[0])
+    plot_weather_data(
+        result,
+        chart_type1.get(),
+        label,
+        chart_color_text1
+    )
 
 
 def periodic_refresh(root):
