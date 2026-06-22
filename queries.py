@@ -78,3 +78,75 @@ def get_weather_stats(table_name, interval, date_from, date_to, location_id, wee
         df['time'] = pd.to_datetime(df['time'])
 
         return df
+    
+def get_combined_weather_stats(table1, statistic1, table2, statistic2, interval, date_from, date_to, location_id, week_days):
+    """
+    Pobiera jednocześnie dwie serie danych pogodowych złączone po wspólnej osi czasu.
+    
+    Argumenty:
+    - table1 / table2 (str): 'temperature', 'rain' lub 'wind_speed'
+    - statistic1 / statistic2 (str): 'avg', 'max' lub 'min'
+    - interval (str): 'Year', 'Month' lub 'Day'
+    - date_from / date_to (str): Zakres dat 'YYYY-MM-DD'
+    - location_id (int): ID lokalizacji
+    - week_days (list): Lista dni tygodnia (0-niedziela, 6-sobota)
+    
+    Zwraca:
+    - pd.DataFrame z kolumnami: 'time', 'value1', 'value2'
+    """
+
+    # Walidacja danych wejściowych
+    allowed_tables = ["temperature", "rain", "wind_speed"]
+    allowed_stats = ["avg", "max", "min"]
+    
+    if table1 not in allowed_tables or table2 not in allowed_tables:
+        raise ValueError(f"Niepoprawna nazwa tabeli. Wybierz z: {allowed_tables}")
+    if statistic1.lower() not in allowed_stats or statistic2.lower() not in allowed_stats:
+        raise ValueError(f"Niepoprawna statystyka. Wybierz z: {allowed_stats}")
+
+    stat1_func = statistic1.upper()
+    stat2_func = statistic2.upper()
+
+    # Określenie agregacji czasu (PostgreSQL DATE_TRUNC)
+    if interval == "Year":
+        time_grouping = "DATE_TRUNC('year', hd.time)::date"
+    elif interval == "Month":
+        time_grouping = "DATE_TRUNC('month', hd.time)::date"
+    else: # Day
+        time_grouping = "hd.time::date"
+
+    if not week_days:
+        return pd.DataFrame(columns=["time", "value1", "value2"])
+
+    # Zapytanie SQL: Wyciągamy dane z hourly_data, a następnie dołączamy
+    # obie tabele pomiarowe, filtrując je po tej samej lokalizacji.
+    query_string = f"""
+        SELECT 
+            {time_grouping} AS time,
+            {stat1_func}(t1.value) AS value1,
+            {stat2_func}(t2.value) AS value2
+        FROM hourly_data hd
+        JOIN {table1} t1 ON t1.hourly_data_id = hd.id AND t1.location_id = :location_id
+        JOIN {table2} t2 ON t2.hourly_data_id = hd.id AND t2.location_id = :location_id
+        WHERE hd.time::date BETWEEN :date_from AND :date_to
+          AND EXTRACT(DOW FROM hd.time) IN :week_days
+        GROUP BY {time_grouping}
+        ORDER BY time ASC;
+    """
+
+    with engine.connect() as conn:
+        result = conn.execute(
+            text(query_string),
+            {
+                "location_id": location_id,
+                "date_from": date_from,
+                "date_to": date_to,
+                "week_days": tuple(week_days)
+            }
+        )
+        
+        # Tworzymy DataFrame
+        df = pd.DataFrame(result.fetchall(), columns=["time", "value1", "value2"])
+        df['time'] = pd.to_datetime(df['time'])
+        
+        return df
