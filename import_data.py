@@ -4,6 +4,7 @@ from retry_requests import retry
 import openmeteo_requests
 from sqlalchemy import create_engine, text
 import psycopg2
+from main import DATABASE_URL
 
 # Lazy import init_db: only loaded if database needs initialization
 
@@ -19,8 +20,8 @@ REQUIRED_TABLES = [
     "daily_data",
     "weather_icons"
 ]
-#trzeba zmienić na faktyczną bazę
-engine = create_engine("postgresql://postgres:HasloDoSerwera@localhost:5432/weather_test")
+
+engine = create_engine(DATABASE_URL)
 
 
 cache_session = requests_cache.CachedSession('.cache', expire_after=3600)

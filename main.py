@@ -14,7 +14,17 @@ from sqlalchemy import create_engine, text
 if hasattr(sys, '_MEIPASS'):
     os.environ['GDAL_DATA'] = os.path.join(sys._MEIPASS, 'gdal_data')
 
-engine = create_engine("postgresql://postgres:HasloDoSerwera@localhost:5432/weather_test")
+
+DB_USER = "postgres"
+DB_PASSWORD = "HasloDoSerwera"
+DB_HOST = "localhost"
+DB_PORT = "5432"
+DB_NAME = "weather_test"
+
+DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+engine = create_engine(DATABASE_URL)
+
 
 # Functions
 

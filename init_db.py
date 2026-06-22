@@ -1,13 +1,14 @@
 import sqlalchemy as sa
 from sqlalchemy import create_engine, text
+from main import DATABASE_URL
 
 def init_db():
     """
     Tworzy pustą bazę danych, wszystkie tabele ze schematu.
     Jeśli tabele już istnieją, pomija ich tworzenie.
     """
-    #UWAGA, ustawić dane do połączenia z db
-    engine = create_engine("postgresql://postgres:HasloDoSerwera@localhost:5432/weather_test")
+
+    engine = create_engine(DATABASE_URL)
 
     with engine.connect() as conn: 
         #locations

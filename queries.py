@@ -1,9 +1,10 @@
 from sqlalchemy import create_engine, text
 from datetime import datetime
+from main import DATABASE_URL
 
 # Lazy import pandas: loaded inside functions that use DataFrames
 
-engine = create_engine("postgresql://postgres:HasloDoSerwera@localhost:5432/weather_test")
+engine = create_engine(DATABASE_URL)
 
 
 def get_weather_stats(table_name, interval, date_from, date_to, location_id, week_days, statistic):
