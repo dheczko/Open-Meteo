@@ -179,7 +179,12 @@ def import_daily_data(conn, locations, start_date, end_date):
             weather_id = weather_map.get(code)
 
             if weather_id is None:
-                raise ValueError(f"Brak kodu {code} w bazie")
+                result = conn.execute(
+                    text("INSERT INTO weather_icons (code) VALUES (:c) RETURNING id"),
+                    {"c": code}
+                )
+                weather_id = result.fetchone()[0]
+                weather_map[code] = weather_id
 
             conn.execute(
                 text("""
