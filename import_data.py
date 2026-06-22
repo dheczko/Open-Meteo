@@ -212,7 +212,7 @@ def run_and_log(conn, func):
     except Exception as e:
         conn.execute(
             text("INSERT INTO logs (time, state, message) VALUES (:t, :s, :m)"),
-            {"t": datetime.utcnow(), "s": "Failure","m": "The import has been successful"}
+            {"t": datetime.now(), "s": "Failure","m": "The import has been successful"}
         )
         conn.commit()
         raise e
