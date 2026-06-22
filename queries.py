@@ -203,3 +203,36 @@ def get_dominant_wind_direction(date_from, date_to, week_days):
             df["wind_direction"] = df["wind_direction"].astype(int)
             
         return df
+
+def get_weather_codes(target_date):
+    """
+    Pobiera kody pogodowe dla wszystkich lokalizacji w wybranym dniu.
+    
+    Argument:
+    - target_date (str): Data w formacie 'YYYY-MM-DD'
+    
+    Zwraca:
+    - pd.DataFrame z kolumnami: 'latitude', 'longitude', 'weather_code'
+    """
+
+    query = text("""
+        SELECT 
+            l.latitude,
+            l.longitude,
+            wi.code AS weather_code
+        FROM daily_data dd
+        JOIN locations l ON dd.location_id = l.id
+        LEFT JOIN weather_icons wi ON dd.weather_id = wi.id
+        WHERE dd.time = :target_date;
+    """)
+
+    with engine.connect() as conn:
+        result = conn.execute(query, {"target_date": target_date})
+        
+        # Tworzymy DataFrame z wynikami
+        df = pd.DataFrame(
+            result.fetchall(), 
+            columns=["latitude", "longitude", "weather_code"]
+        )
+            
+        return df
