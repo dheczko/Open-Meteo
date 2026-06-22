@@ -1,6 +1,7 @@
-import pandas as pd
 from sqlalchemy import create_engine, text
 from datetime import datetime
+
+# Lazy import pandas: loaded inside functions that use DataFrames
 
 engine = create_engine("postgresql://postgres:HasloDoSerwera@localhost:5432/weather_test")
 
@@ -21,6 +22,9 @@ def get_weather_stats(table_name, interval, date_from, date_to, location_id, wee
     Zwraca:
     - pd.DataFrame z kolumnami: 'time' oraz 'value'
     """
+    # Lazy import pandas
+    import pandas as pd
+    
     # walidacja nazwy tabeli i funkcji statystycznej
     allowed_tables = ["temperature", "rain", "wind_speed"]
     allowed_stats = ["avg", "max", "min"]
@@ -94,6 +98,8 @@ def get_combined_weather_stats(table1, statistic1, table2, statistic2, interval,
     Zwraca:
     - pd.DataFrame z kolumnami: 'time', 'value1', 'value2'
     """
+    # Lazy import pandas
+    import pandas as pd
 
     # Walidacja danych wejściowych
     allowed_tables = ["temperature", "rain", "wind_speed"]
@@ -164,6 +170,8 @@ def get_dominant_wind_direction(date_from, date_to, week_days):
     Zwraca:
     - pd.DataFrame z kolumnami: 'latitude', 'longitude', 'wind_direction'
     """
+    # Lazy import pandas
+    import pandas as pd
 
     # Zabezpieczenie na wypadek pustej listy dni tygodnia
     if not week_days:
@@ -214,6 +222,8 @@ def get_weather_codes(target_date):
     Zwraca:
     - pd.DataFrame z kolumnami: 'latitude', 'longitude', 'weather_code'
     """
+    # Lazy import pandas
+    import pandas as pd
 
     query = text("""
         SELECT 

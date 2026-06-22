@@ -1,19 +1,15 @@
 import os
 import tkinter as tk
-import pandas as pd
-import geopandas as gpd
-import numpy as np
 from main import resource_path
 
-import matplotlib
-matplotlib.use('TkAgg')
-
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+# Lazy imports for heavy dependencies - loaded inside functions that use them
+# - pandas, geopandas, numpy: used in plot functions
+# - matplotlib, pyplot, dates, offsetbox: used in visualization functions
 
 
 def change_icon():
+    import matplotlib.pyplot as plt
+    
     manager = plt.get_current_fig_manager()
     icon_path = resource_path("img/icon.png")
 
@@ -37,6 +33,14 @@ def plot_weather_data(df, chart_type1, label1, color1, chart_type2=None, label2=
     - label1 / label2 (str): Etykieta do legendy (np. 'Temperatura', 'Opad', 'Prędkość wiatru')
     - color1 / color2 (str): Kod HEX koloru (np. '#ff0000', '#0000ff')
     """
+    # Lazy imports for plotting libraries
+    import pandas as pd
+    import numpy as np
+    import matplotlib
+    matplotlib.use('TkAgg')
+    import matplotlib.pyplot as plt
+    import matplotlib.dates as mdates
+    from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
     if df is None or df.empty:
         print("Brak danych do wyświetlenia na wykresie.")
@@ -123,6 +127,12 @@ def plot_wind_map(df, color='#ff0000'):
     - df (pd.DataFrame): DataFrame zawierający kolumny 'latitude', 'longitude', 'wind_direction'
     - color (str): Kolor strzałek (np. nazwa lub kod HEX)
     """
+    # Lazy imports for mapping libraries
+    import numpy as np
+    import geopandas as gpd
+    import matplotlib
+    matplotlib.use('TkAgg')
+    import matplotlib.pyplot as plt
 
     if df is None or df.empty:
         print("Brak danych wiatru do wyświetlenia na mapie.")
@@ -186,9 +196,16 @@ def plot_weather_map(df, color='#ff0000'):
     - df (pd.DataFrame): Zawiera kolumny 'latitude', 'longitude', 'weather_code'
     - color (str): Kolor kropek (jeśli ikona nie istnieje, np. '#ff0000')
     """
+    # Lazy imports for mapping and plotting libraries
+    import pandas as pd
+    import geopandas as gpd
+    import matplotlib
+    matplotlib.use('TkAgg')
+    import matplotlib.pyplot as plt
+    from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
     if df is None or df.empty:
-        print("Brak danych pogodowych do wyświetlenia na mapie.")
+        print("Brak danych pogodowych do wyświetleniu na mapie.")
         return
 
     # 1. Ładowanie lokalnej mapy świata

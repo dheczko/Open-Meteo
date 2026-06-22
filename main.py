@@ -1,12 +1,14 @@
 import sys
 import os
 import tkinter as tk
-from queries import *
-from visualize import *
 from tkinter import colorchooser, messagebox
 from datetime import datetime
-from import_data import import_data
 from sqlalchemy import create_engine, text
+
+# Lazy imports for modules that trigger heavy dependencies:
+# - queries, visualize: imported on-demand in visualize_data()
+# - import_data: imported on-demand in refresh_data()
+# - pandas, matplotlib, geopandas, numpy: loaded inside functions
 
 
 if hasattr(sys, '_MEIPASS'):
@@ -17,6 +19,9 @@ engine = create_engine("postgresql://postgres:HasloDoSerwera@localhost:5432/weat
 # Functions
 
 def convert_units(df, param1, param2=None):
+    # Lazy import pandas only when needed
+    import pandas as pd
+    
     df = df.copy()
     
     # param1 conversion
@@ -138,6 +143,15 @@ def choose_color2():
 
 
 def visualize_data():
+    # Lazy imports for visualization modules (only loaded when visualizing)
+    from queries import (
+        get_weather_stats,
+        get_combined_weather_stats,
+        get_dominant_wind_direction,
+        get_weather_codes
+    )
+    from visualize import plot_weather_data, plot_weather_map, plot_wind_map
+    
     # Validate date inputs
 
     if date_from:
@@ -231,6 +245,9 @@ def periodic_refresh(root):
 
 
 def refresh_data():
+    # Lazy import heavy data import module (only loaded on refresh)
+    from import_data import import_data
+    
     label_text = "Refreshing data... (please wait, this may take a while)"
     messagebox.showinfo("Refreshing Data", label_text)
     print(label_text)

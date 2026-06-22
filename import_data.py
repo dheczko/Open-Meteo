@@ -1,10 +1,11 @@
-from init_db import init_db
 import pandas as pd
 import requests_cache
 from retry_requests import retry
 import openmeteo_requests
 from sqlalchemy import create_engine, text
 import psycopg2
+
+# Lazy import init_db: only loaded if database needs initialization
 
 REQUIRED_TABLES = [
     "countries",
@@ -220,6 +221,8 @@ def run_and_log(conn, func):
 def import_data():
     with engine.connect() as conn:
         if not is_complete(conn):
+            # Lazy import init_db: only load if database setup needed
+            from init_db import init_db
             init_db()
         locations = get_locations(conn)
         start_date, end_date = determine_date_range(conn)
