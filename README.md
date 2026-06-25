@@ -43,13 +43,17 @@ ALTER USER postgres WITH PASSWORD 'TwojeHaslo';
 
 Wersja produkcyjna programu nie wymaga posiadania zainstalowanego języka Python, ponieważ wszystkie zależności zostały skompilowane.
 
-### Krok 1: Wypakowanie archiwum
+### Krok 1: Instalacja bazy danych
+
+Postępuj zgodnie z krokami przedstawionymi w punkcie [🛠️ Instrukcja instalacji bazy danych](#%EF%B8%8F-instrukcja-instalacji-bazy-danych).
+
+### Krok 2: Wypakowanie archiwum
 
 Pobierz plik `.zip` pod poniższym linkiem odpowiedni dla Twojego systemu operacyjnego, a następnie rozpakuj go w wybranej lokalizacji na dysku.
 
 👉 [Link do najnowszego wydania](../../releases/latest)
 
-### Krok 2: Konfiguracja połączenia
+### Krok 3: Konfiguracja połączenia
 
 W głównym folderze aplikacji (obok pliku wykonywalnego) znajduje się plik tekstowy `config.txt`. Otwórz go w dowolnym edytorze tekstu (Notatnik, TextEdit) i uzupełnij dane dostępowe do swojej bazy danych PostgreSQL utworzonej w poprzednim kroku.
 
@@ -63,13 +67,13 @@ DB_PORT: 5432
 DB_NAME: weather_test
 ```
 
-### Krok 3: Uruchomienie programu
+### Krok 4: Uruchomienie programu
 
 1. Wejdź do wypakowanego folderu.
 
 2. Kliknij dwukrotnie plik `openmeteo`, aby uruchomić interfejs graficzny.
 
-⚠️ **Uwaga dla macOS**: Przy pierwszym uruchomieniu system może zablokować aplikację jako pochodzącą od nieznanego dewelopera. Wejdź w *Ustawienia systemowe -> Prywatność i bezpieczeństwo* i kliknij przycisk *Otwórz mimo to*.
+⚠️ **Uwaga dla macOS**: Przy pierwszym uruchomieniu system może zablokować aplikację jako pochodzącą od nieznanego dewelopera. Otwórz aplikację _Terminal_, wpisz komendę `xattr -cr `, przeciągnij wypakowany folder do okna konsoli (pojawi się adres, gdzie zapisany jest folder), a następnie wciśnij klawisz _ENTER_.
 
 ⚠️ **Uwaga przy pierwszym uruchomieniu**: Przy pierwszym uruchomieniu program musi wczytać wszystkie potrzebne biblioteki oraz pobrać wszystkie potrzebne dane za pomocą API. To może trochę potrwać. Należy uzbroić się w cierpliwość 😉.
 
